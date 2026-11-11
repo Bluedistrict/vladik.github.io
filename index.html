@@ -1,0 +1,2227 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="indigo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bybit Pro v21 — анализ рынка и сигналы</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta name="theme-color" content="#070b14">
+<!--STATE-->
+<style>
+:root {
+  --bg: #070b14;
+  --bg-card: rgba(16, 24, 44, 0.78);
+  --bg-elev: #131d36;
+  --bg-inp: #0b1222;
+  --line: rgba(124, 156, 255, 0.16);
+  --line-strong: rgba(124, 156, 255, 0.32);
+  --tx: #f0f4ff;
+  --mut: #8b9bbd;
+  --long: #10b981;
+  --long-glow: rgba(16, 185, 129, 0.18);
+  --short: #f43f5e;
+  --short-glow: rgba(244, 63, 94, 0.18);
+  --amb: #f59e0b;
+  --amb-glow: rgba(245, 158, 11, 0.16);
+  --ac: #6366f1;
+  --ac-light: #818cf8;
+  --g1: rgba(99, 102, 241, 0.18);
+  --g2: rgba(16, 185, 129, 0.10);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.45);
+}
+[data-theme="emerald"] {
+  --ac: #10b981; --ac-light: #34d399;
+  --g1: rgba(16, 185, 129, 0.20); --g2: rgba(6, 95, 70, 0.16);
+  --bg: #050e0b; --bg-card: rgba(11, 28, 22, 0.82); --bg-elev: #0f2920; --bg-inp: #071712;
+  --line: rgba(52, 211, 153, 0.18);
+}
+[data-theme="sunset"] {
+  --ac: #f97316; --ac-light: #fb923c;
+  --g1: rgba(249, 115, 22, 0.18); --g2: rgba(190, 24, 93, 0.14);
+  --bg: #11090e; --bg-card: rgba(30, 16, 24, 0.82); --bg-elev: #281520; --bg-inp: #160b11;
+  --line: rgba(251, 146, 60, 0.18);
+}
+[data-theme="graphite"] {
+  --ac: #94a3b8; --ac-light: #cbd5e1;
+  --g1: rgba(148, 163, 184, 0.14); --g2: rgba(71, 85, 105, 0.12);
+  --bg: #090b0e; --bg-card: rgba(20, 24, 31, 0.85); --bg-elev: #1a2029; --bg-inp: #0f1318;
+  --line: rgba(148, 163, 184, 0.16);
+}
+[data-theme="cyber"] {
+  --ac: #06b6d4; --ac-light: #22d3ee;
+  --g1: rgba(6, 182, 212, 0.20); --g2: rgba(168, 85, 247, 0.14);
+  --bg: #050811; --bg-card: rgba(12, 20, 38, 0.84); --bg-elev: #112238; --bg-inp: #081120;
+  --line: rgba(34, 211, 238, 0.20);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  color: var(--tx);
+  background:
+    radial-gradient(950px 440px at 85% -10%, var(--g1) 0%, transparent 65%),
+    radial-gradient(750px 400px at -10% 0%, var(--g2) 0%, transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  font: 14px/1.45 "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 680px; margin: 0 auto; padding: 16px; }
+
+/* TOP HEADER */
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.top-brand { display: flex; align-items: center; gap: 12px; }
+.lg {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--ac-light), var(--long));
+  color: #060b14;
+  font-size: 19px;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  -webkit-text-fill-color: #060b14;
+}
+.top h1 {
+  font-size: 20px;
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #ffffff, var(--ac-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.top small { color: var(--mut); font-size: 12px; display: block; margin-top: 1px; }
+.hr { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.sess-pill {
+  font-size: 11.5px;
+  color: var(--tx);
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--bg-inp);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sess-pill i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ac-light);
+}
+.scan-btn {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--ac-light);
+  border: 1px solid var(--line-strong);
+  border-radius: 99px;
+  padding: 6px 13px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.scan-btn:hover { background: var(--ac); color: #fff; transform: translateY(-1px); }
+
+#st {
+  font-size: 12px;
+  color: var(--mut);
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--bg-inp);
+  display: inline-flex;
+  align-items: center;
+}
+#st b { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--amb); margin-right: 7px; }
+#st.ok b { background: var(--long); box-shadow: 0 0 9px var(--long); }
+#st.bad b { background: var(--short); box-shadow: 0 0 9px var(--short); }
+
+.snd {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--bg-inp);
+  color: var(--mut);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.snd span:first-child { font-size: 14px; }
+.snd.on { color: #fff; border-color: var(--long); background: rgba(16, 185, 129, 0.12); box-shadow: 0 0 12px rgba(16, 185, 129, 0.25); }
+
+/* CONTROLS BAR (.m1) */
+.m1 {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+}
+.ctrl-group { flex: 1 1 240px; }
+.lbl {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mut);
+  margin: 0 0 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tabs, .chips { display: flex; gap: 6px; }
+.tabs { overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.chips { flex-wrap: wrap; }
+.tabs button, .chips button {
+  background: var(--bg-inp);
+  color: var(--mut);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.tabs button:hover, .chips button:hover { border-color: var(--ac-light); color: #fff; background: rgba(255, 255, 255, 0.04); }
+.tabs button.on, .chips button.on {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(99, 102, 241, 0.12));
+  border-color: var(--ac-light);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+}
+.tabs small { margin-left: 6px; font-size: 11px; font-weight: 600; padding: 1px 5px; border-radius: 5px; }
+.tabs small.u { color: var(--long); background: rgba(16, 185, 129, 0.12); }
+.tabs small.d { color: var(--short); background: rgba(244, 63, 94, 0.12); }
+
+/* SIDEBAR */
+.side {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.search-wrap { position: relative; margin-bottom: 8px; }
+#find {
+  width: 100%;
+  background: var(--bg-inp);
+  border: 1px solid var(--line);
+  color: var(--tx);
+  border-radius: 10px;
+  padding: 9px 32px 9px 12px;
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.15s;
+}
+#find:focus { border-color: var(--ac-light); outline: none; }
+.search-kbd {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--mut);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 6px;
+  pointer-events: none;
+}
+.coin-sort {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.coin-sort button {
+  flex: 1;
+  background: transparent;
+  color: var(--mut);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.coin-sort button.on { color: var(--tx); border-color: var(--ac-light); background: rgba(255, 255, 255, 0.05); font-weight: 600; }
+
+/* MARKET TRAFFIC LIGHT */
+.mkt {
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+.mkt .mt { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.mkt .mi { font-size: 20px; }
+.mkt ul { margin: 8px 0 0; padding-left: 20px; color: var(--mut); font-size: 12.5px; display: grid; gap: 3px; }
+.mkt .ms { color: var(--mut); font-size: 12.5px; margin-top: 6px; }
+.mkt.g { border-color: rgba(16, 185, 129, 0.45); box-shadow: inset 3px 0 0 var(--long), 0 8px 24px rgba(16, 185, 129, 0.08); }
+.mkt.y { border-color: rgba(245, 158, 11, 0.5); box-shadow: inset 3px 0 0 var(--amb), 0 8px 24px rgba(245, 158, 11, 0.08); }
+.mkt.r { border-color: rgba(244, 63, 94, 0.6); box-shadow: inset 3px 0 0 var(--short), 0 8px 24px rgba(244, 63, 94, 0.12); }
+
+/* HERO PRICE & CHART CARD */
+.price {
+  position: relative;
+  background: linear-gradient(145deg, rgba(23, 36, 68, 0.88), rgba(12, 20, 38, 0.92));
+  border: 1px solid var(--line-strong);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.price-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-right: 92px; }
+.price .p { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; transition: color 0.3s; }
+.price .p.up { color: var(--long); text-shadow: 0 0 24px rgba(16, 185, 129, 0.25); }
+.price .p.dn { color: var(--short); text-shadow: 0 0 24px rgba(244, 63, 94, 0.25); }
+.price .m { color: var(--mut); font-size: 12.5px; margin-top: 8px; line-height: 1.55; }
+.star {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  background: var(--bg-inp);
+  border: 1px solid var(--line);
+  color: var(--amb);
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: grid;
+  place-items: center;
+}
+.star:hover { border-color: var(--ac-light); transform: scale(1.04); }
+
+/* CHART */
+.chartbox { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.chh { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.chh button {
+  background: var(--bg-inp);
+  color: var(--mut);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chh button.on { color: #fff; border-color: var(--ac-light); background: rgba(99, 102, 241, 0.22); }
+.chh .cl { margin-left: 6px; font-weight: 700; color: #fff; }
+.ch-legend { display: inline-flex; gap: 10px; font-size: 11px; color: var(--mut); margin-left: 8px; }
+.ch-legend span::before { content: "● "; }
+.ch-legend .l21::before { color: #f5c451; }
+.ch-legend .l50::before { color: #7c9cff; }
+.ch-legend .l200::before { color: #c58bff; }
+.chh .ci { margin-left: auto; font-size: 11.5px; color: var(--mut); font-family: monospace; }
+#cv {
+  width: 100%;
+  height: 340px;
+  display: block;
+  margin-top: 10px;
+  border-radius: 12px;
+  background: rgba(6, 10, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+
+/* MTF MATRIX & STATS */
+.mtf-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.mtf-cell {
+  background: rgba(8, 13, 26, 0.65);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.mtf-cell .mtf-h { display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 3px; }
+.mtf-cell .mtf-s { font-size: 11px; color: var(--mut); }
+.mtf-up { color: var(--long); }
+.mtf-dn { color: var(--short); }
+.mtf-fl { color: var(--amb); }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--mut);
+}
+.stats span {
+  background: rgba(8, 13, 26, 0.55);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stats b { color: var(--tx); font-size: 15px; font-weight: 700; }
+
+/* ANALYTICS ACCORDIONS */
+.bento-tools {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+details {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin: 0 0 12px 0;
+  transition: border-color 0.15s;
+}
+details:hover { border-color: var(--line-strong); }
+.bento-tools details { margin: 0; }
+summary {
+  cursor: pointer;
+  color: var(--tx);
+  font-weight: 600;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  list-style: none;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after {
+  content: "▾";
+  color: var(--mut);
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+details[open] > summary::after { transform: rotate(180deg); }
+.sum-badge {
+  margin-left: auto;
+  margin-right: 10px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: rgba(99, 102, 241, 0.18);
+  color: var(--ac-light);
+  font-weight: 600;
+}
+
+.hm { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; margin: 12px 0 6px; }
+.hc { height: 34px; border-radius: 6px; background: rgba(99, 102, 241, calc(0.08 + var(--a) * 0.82)); position: relative; }
+.hc.now { outline: 2px solid #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.4); }
+.hc i { position: absolute; bottom: -17px; left: 0; font-size: 10px; color: var(--mut); font-style: normal; }
+.hrs .ms { color: var(--mut); font-size: 12.5px; margin-top: 20px; }
+.hrs .ms + .ms { margin-top: 6px; }
+
+.rd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 9px 8px;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 12.5px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.rd:first-child { margin-top: 8px; }
+.rd:hover { background: rgba(99, 102, 241, 0.1); }
+.rd b.up { color: var(--long); }
+.rd b.dn { color: var(--short); }
+.rd span { color: var(--mut); }
+.rd em { margin-left: auto; font-style: normal; color: var(--amb); font-size: 11.5px; font-weight: 500; }
+
+.fr { display: flex; align-items: center; gap: 10px; font-size: 12.5px; margin-top: 8px; }
+.fr span { flex: 0 0 46%; color: var(--mut); }
+.fr div { flex: 1; height: 7px; border-radius: 99px; background: var(--bg-inp); overflow: hidden; }
+.fr i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--ac), var(--amb)); }
+.fr b { min-width: 28px; text-align: right; }
+
+.mapg { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; margin-top: 10px; }
+.mc { border-radius: 10px; padding: 8px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; min-height: 54px; transition: transform 0.12s; border: 1px solid rgba(255, 255, 255, 0.06); }
+.mc:hover { transform: scale(1.03); }
+.mc.big { grid-column: span 2; grid-row: span 2; font-size: 15px; }
+.mc b { font-size: 12.5px; }
+.mc span { font-size: 11.5px; font-weight: 600; opacity: 0.95; }
+.mc.op { outline: 2px solid #fff; }
+
+/* FILTER TOOLBAR */
+.sig-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.sig-sort {
+  background: var(--bg-inp);
+  color: var(--tx);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 12px;
+}
+
+/* SIGNAL CARDS */
+.sig {
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 12px;
+  background: linear-gradient(165deg, rgba(22, 34, 62, 0.88), rgba(12, 20, 38, 0.94));
+  border: 1px solid var(--line);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.sig:hover { transform: translateY(-2px); }
+.sig.LONG { box-shadow: inset 4px 0 0 var(--long), var(--shadow); }
+.sig.SHORT { box-shadow: inset 4px 0 0 var(--short), var(--shadow); }
+
+.hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hd-left { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.hd .s {
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 8px;
+  letter-spacing: 0.02em;
+}
+.LONG .s { color: var(--long); background: var(--long-glow); border: 1px solid rgba(16, 185, 129, 0.35); }
+.SHORT .s { color: var(--short); background: var(--short-glow); border: 1px solid rgba(244, 63, 94, 0.35); }
+.sym { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+.tf { font-size: 11.5px; font-weight: 600; color: var(--ac-light); background: rgba(99, 102, 241, 0.14); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; }
+
+.tag { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line); color: var(--mut); white-space: nowrap; background: var(--bg-inp); }
+.tag.win { color: var(--long); border-color: rgba(16, 185, 129, 0.5); background: var(--long-glow); }
+.tag.loss { color: var(--short); border-color: rgba(244, 63, 94, 0.5); background: var(--short-glow); }
+
+.cfrow { margin: 10px 0 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cf { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 700; }
+.cf.h { background: var(--long-glow); color: var(--long); border: 1px solid rgba(16, 185, 129, 0.3); }
+.cf.m { background: var(--amb-glow); color: var(--amb); border: 1px solid rgba(245, 158, 11, 0.3); }
+.cf.l { background: var(--short-glow); color: var(--short); border: 1px solid rgba(244, 63, 94, 0.3); }
+.wn { display: inline-block; font-size: 11.5px; color: var(--amb); background: rgba(245, 158, 11, 0.08); padding: 2px 8px; border-radius: 6px; }
+
+.q { margin: 8px 0 4px; font-size: 12.5px; color: var(--mut); display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.q .dots { color: var(--amb); letter-spacing: 2px; margin-right: 4px; font-size: 14px; }
+.q s { text-decoration: none; color: #2d3b58; }
+.q b { color: #1a1300; background: var(--amb); border-radius: 5px; padding: 1px 6px; margin-right: 4px; font-size: 11px; font-weight: 800; }
+.wy { display: inline-block; padding: 2px 8px; border-radius: 6px; background: rgba(99, 102, 241, 0.14); color: #d0daff; font-size: 11.5px; font-weight: 500; }
+.fib { margin: 6px 0 2px; font-size: 12.5px; color: var(--amb); background: rgba(245, 158, 11, 0.08); border-left: 3px solid var(--amb); padding: 4px 10px; border-radius: 4px; }
+.fib b { font-weight: 700; }
+
+.pnl {
+  margin: 12px 0 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(7, 11, 20, 0.55);
+  border: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pnl .lblp { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mut); font-weight: 600; }
+.pnl .big { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.pnl.up { border-color: rgba(16, 185, 129, 0.28); }
+.pnl.dn { border-color: rgba(244, 63, 94, 0.28); }
+.pnl.up .big { color: var(--long); }
+.pnl.dn .big { color: var(--short); }
+.pnl .sub { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--mut); }
+.pnl .sub span { background: rgba(255, 255, 255, 0.04); padding: 3px 8px; border-radius: 6px; }
+
+.late, .okk { margin: 8px 0 4px; padding: 8px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
+.late { background: rgba(245, 158, 11, 0.12); color: var(--amb); border: 1px solid rgba(245, 158, 11, 0.25); }
+.okk { background: rgba(16, 185, 129, 0.1); color: var(--long); border: 1px solid rgba(16, 185, 129, 0.25); }
+.age { opacity: 0.8; font-size: 11.5px; }
+
+/* PRICE LADDER */
+.lad { margin: 16px 0 12px; padding: 10px 12px; background: rgba(7, 11, 20, 0.4); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
+.bar { position: relative; height: 8px; border-radius: 99px; background: var(--bg-inp); margin: 6px 0 12px; }
+.bar i { position: absolute; top: 0; bottom: 0; opacity: 0.85; }
+.bar i:first-child { border-radius: 99px 0 0 99px; }
+.bar i:nth-child(2) { border-radius: 0 99px 99px 0; }
+.bar u { position: absolute; top: -4px; bottom: -4px; width: 2px; background: #fff; z-index: 2; }
+.bar .tp1-tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--amb); z-index: 2; opacity: 0.9; }
+.bar em {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.22), 0 0 12px #fff;
+  transition: left 0.4s;
+  z-index: 3;
+}
+.lb { display: flex; justify-content: space-between; font-size: 11.5px; line-height: 1.3; color: var(--mut); }
+.lb span b { color: var(--tx); font-size: 12.5px; display: block; margin-top: 2px; }
+.lb span:nth-child(2), .lb span:nth-child(3) { text-align: center; }
+.lb span:last-child { text-align: right; }
+
+.why { margin: 10px 0 6px; padding: 10px 12px; font-size: 12.5px; color: var(--mut); background: rgba(7, 11, 20, 0.45); border-radius: 10px; }
+.why summary { font-size: 12.5px; color: var(--ac-light); }
+.why p { margin: 8px 0 0; line-height: 1.55; color: var(--tx); opacity: 0.9; }
+
+.act { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 8px; }
+.act button {
+  flex: 1 1 auto;
+  background: var(--bg-inp);
+  color: var(--tx);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.act button:hover { border-color: var(--ac-light); background: rgba(99, 102, 241, 0.14); }
+.act .go {
+  flex: 1 1 100%;
+  text-align: center;
+  background: linear-gradient(135deg, var(--ac-light), var(--ac));
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 10px;
+  border: none;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+}
+.act .go:hover { filter: brightness(1.08); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.grid > div {
+  background: rgba(7, 11, 20, 0.35);
+  padding: 6px 9px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.grid span { color: var(--mut); font-size: 11px; font-weight: 400; display: block; margin-bottom: 1px; }
+
+.ft { margin-top: 10px; font-size: 11.5px; color: var(--mut); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cp { background: var(--bg-inp); color: var(--ac-light); border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.cp:hover { border-color: var(--ac-light); color: #fff; }
+
+.pill { display: inline-block; margin: 0 6px 6px 0; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--tx); background: var(--bg-inp); }
+.pill.win { color: var(--long); border-color: rgba(16, 185, 129, 0.45); background: var(--long-glow); }
+.pill.loss { color: var(--short); border-color: rgba(244, 63, 94, 0.45); background: var(--short-glow); }
+
+.empty {
+  color: var(--mut);
+  padding: 36px 16px;
+  text-align: center;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: rgba(16, 24, 44, 0.4);
+}
+
+/* SETTINGS */
+.set { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+.set label { font-size: 11.5px; color: var(--mut); display: block; margin-bottom: 4px; }
+.set input, .set select {
+  width: 100%;
+  background: var(--bg-inp);
+  border: 1px solid var(--line);
+  color: var(--tx);
+  border-radius: 9px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+}
+.set .chk-lbl {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: var(--tx);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin: 2px 0;
+}
+.set .chk-lbl input { width: 16px; height: 16px; accent-color: var(--ac); margin: 0; }
+.btn-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-top: 12px; }
+.btn {
+  width: 100%;
+  margin-top: 8px;
+  background: linear-gradient(135deg, var(--ac-light), var(--ac));
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn.ghost { background: var(--bg-inp); color: var(--mut); border: 1px solid var(--line); font-weight: 600; }
+.btn.ghost:hover { color: var(--tx); border-color: var(--ac-light); }
+.note { color: var(--mut); font-size: 11.5px; line-height: 1.6; margin-top: 14px; padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); }
+
+/* MODAL (REPLACES BLOCKED PROMPT) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 15, 0.78);
+  backdrop-filter: blur(6px);
+  display: none;
+  place-items: center;
+  z-index: 50;
+  padding: 16px;
+}
+.modal-backdrop.open { display: grid; }
+.modal-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.65);
+}
+.modal-card h3 { margin: 0 0 6px; font-size: 17px; }
+.modal-card p { margin: 0 0 12px; font-size: 12.5px; color: var(--mut); }
+.modal-card input, .modal-card textarea {
+  width: 100%;
+  background: var(--bg-inp);
+  border: 1px solid var(--line-strong);
+  color: var(--tx);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.modal-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.modal-presets button {
+  flex: 1;
+  background: var(--bg-inp);
+  color: var(--ac-light);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.modal-list { max-height: 130px; overflow-y: auto; margin-bottom: 12px; }
+.modal-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-inp); border-radius: 8px; margin-bottom: 4px; font-size: 12.5px; }
+.modal-item button { background: transparent; border: 0; color: var(--short); cursor: pointer; font-weight: 700; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-actions button { width: auto; margin: 0; padding: 9px 16px; }
+
+#toast {
+  position: fixed;
+  left: 50%;
+  top: calc(env(safe-area-inset-top) + 14px);
+  transform: translate(-50%, -180%);
+  background: var(--bg-elev);
+  border: 1px solid var(--ac-light);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 60;
+  max-width: 92vw;
+  font-weight: 500;
+}
+#toast.show { transform: translate(-50%, 0); }
+#pg { position: fixed; left: 0; top: 0; height: 3px; width: 0; background: linear-gradient(90deg, var(--ac-light), var(--long)); z-index: 70; transition: width 0.3s, opacity 0.6s; }
+:focus-visible { outline: 2px solid var(--ac-light); outline-offset: 2px; }
+
+@media (max-width: 700px) {
+  #cv { height: 260px; }
+  .chh .ci { margin-left: 0; width: 100%; }
+  .grid { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 900px) {
+  .wrap { max-width: 1060px; }
+  .bento-tools { grid-template-columns: 1fr 1fr; align-items: start; }
+  #list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+  .sig { margin: 0; }
+  .empty { grid-column: 1 / -1; }
+}
+@media (min-width: 1120px) {
+  .wrap {
+    max-width: 1380px;
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-areas:
+      "top top"
+      "side m1"
+      "side m2";
+    column-gap: 20px;
+    align-items: start;
+  }
+  .top { grid-area: top; }
+  .m1 { grid-area: m1; }
+  .m2 { grid-area: m2; }
+  .side { grid-area: side; position: sticky; top: 14px; margin-bottom: 0; }
+  .tabs { flex-direction: column; max-height: calc(100vh - 210px); overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+  .tabs button { display: flex; justify-content: space-between; align-items: center; border-radius: 10px; text-align: left; width: 100%; padding: 8px 12px; }
+  #list { grid-template-columns: repeat(auto-fill, minmax(410px, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ===== v21 ===== */
+.rkgrid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 14px; }
+@media (min-width: 900px) { .rkgrid { grid-template-columns: 1fr 1fr; } }
+.rkc { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.rkc .stats { margin-top: 6px; }
+.rkc .ms { color: var(--mut); font-size: 12px; margin-top: 8px; }
+.gr { display: inline-block; font-size: 11.5px; font-weight: 800; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); letter-spacing: .02em; }
+.gr.gp { color: #1a1300; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-color: #f59e0b; }
+.gr.ga { color: var(--long); background: var(--long-glow); border-color: rgba(16, 185, 129, .4); }
+.gr.gb { color: var(--ac-light); background: rgba(99, 102, 241, .16); border-color: var(--line-strong); }
+.gr.gn { color: var(--mut); background: var(--bg-inp); }
+.ckl { display: grid; gap: 4px; margin-top: 8px; }
+.ck { display: flex; gap: 8px; font-size: 12.5px; align-items: flex-start; color: var(--tx); }
+.ck i { font-style: normal; width: 16px; flex: 0 0 16px; font-weight: 800; }
+.ck.y i { color: var(--long); }
+.ck.n i { color: var(--short); }
+.ck.u i { color: var(--mut); }
+.ck.n span { opacity: .6; }
+.ck small { color: var(--mut); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; }
+.cl { margin: 8px 0 0; padding-left: 18px; color: var(--tx); font-size: 12.5px; display: grid; gap: 3px; }
+.tw { overflow-x: auto; margin-top: 6px; -webkit-overflow-scrolling: touch; }
+.tb { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tb th { text-align: left; color: var(--mut); font-weight: 600; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tb td { padding: 5px 8px; border-bottom: 1px solid rgba(124, 156, 255, .08); white-space: nowrap; }
+.tb td:last-child { white-space: normal; min-width: 120px; }
+.tb .win { color: var(--long); }
+.tb .loss { color: var(--short); }
+.tb .nt { color: var(--mut); }
+.h4 { margin: 18px 0 4px; font-size: 13px; color: var(--ac-light); font-weight: 700; }
+details.wide { grid-column: 1 / -1; }
+.btn[disabled] { opacity: .55; cursor: progress; }
+.hrs .stats { margin-top: 8px; }
+/* не даём широким таблицам растягивать страницу на телефоне */
+.bento-tools { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .bento-tools { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.bento-tools details, .m2, .sig, .rkc { min-width: 0; }
+.stats { grid-template-columns: repeat(auto-fit, minmax(min(125px, 100%), 1fr)); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="top-brand">
+      <span class="lg">◭</span>
+      <div>
+        <h1>Скальп-сигналы Pro</h1>
+        <small>Bybit USDT Perpetual · v21 · анализ, а не автоторговля</small>
+      </div>
+    </div>
+    <div class="hr">
+      <div class="sess-pill" id="sess"><i></i><span>Сессия…</span></div>
+      <div class="sess-pill" id="fresh" title="Свежесть данных"><i></i><span>данные…</span></div>
+      <button id="scanNow" class="scan-btn" title="Просканировать все монеты и показать ближайший сетап">⚡ Найти сетап</button>
+      <button id="snd" class="snd" aria-label="Звук"><span id="sndi">🔇</span><span id="sndt">Звук выкл</span></button>
+      <div id="st"><b></b><span>подключение…</span></div>
+    </div>
+  </header>
+
+  <div class="m1">
+    <div class="ctrl-group">
+      <p class="lbl"><span>Режим торговли</span></p>
+      <div class="chips" id="modes"></div>
+    </div>
+    <div class="ctrl-group">
+      <p class="lbl"><span>Таймфреймы, за которыми следим</span></p>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+
+  <aside class="side">
+    <p class="lbl"><span>Монеты в работе</span><span id="coinCnt"></span></p>
+    <div class="search-wrap">
+      <input id="find" placeholder="Поиск монеты (например PEPE)">
+      <span class="search-kbd">/</span>
+    </div>
+    <div class="coin-sort" id="coinSort">
+      <button class="on" data-cs="def">По списку</button>
+      <button data-cs="chg">Топ 24ч %</button>
+      <button data-cs="vol">Объём $</button>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </aside>
+
+  <div class="m2">
+    <div id="labbanner"></div>
+    <div id="mkt" class="mkt"></div>
+    <div id="rk" class="rkgrid"></div>
+
+    <div class="price">
+      <button id="fv" class="star" aria-label="Избранное">☆</button>
+      <button id="al" class="star" style="right:60px" aria-label="Алерт по цене">🔔</button>
+      <div class="price-top">
+        <div>
+          <div class="p" id="pr">—</div>
+        </div>
+      </div>
+      <div class="m" id="pm">Ждём данные</div>
+      <div id="chartbox" class="chartbox" style="display:none">
+        <div class="chh" id="chh"></div>
+        <canvas id="cv"></canvas>
+      </div>
+      <div id="sp"></div>
+    </div>
+
+    <div id="pre"></div>
+
+    <div class="bento-tools">
+      <details id="apld" class="hrs wide" open>
+        <summary><span>⭐ Сигналы A+ (открытые)</span><span class="sum-badge" id="apcnt">0</span></summary>
+        <div id="aplb"></div>
+      </details>
+      <details id="labd" class="hrs wide">
+        <summary><span>🧪 Lab: проверка стратегий, Out-of-sample, walk-forward</span><span class="sum-badge" id="labbn">не выполнен</span></summary>
+        <div id="labb"></div>
+      </details>
+      <details id="stxd" class="hrs wide">
+        <summary><span>📊 Статистика журнала: капитал, монеты, стратегии, таймфреймы</span></summary>
+        <div id="stxb"></div>
+      </details>
+      <details id="histd" class="hrs wide">
+        <summary><span>🗂 История всех сигналов и отказов (NO TRADE)</span><span class="sum-badge" id="histcnt">0</span></summary>
+        <div id="histb"></div>
+      </details>
+      <details id="rdr" class="hrs" open>
+        <summary><span>🎯 Радар: сетапы формируются</span><span class="sum-badge" id="rdcnt">0</span></summary>
+        <div id="rdb"></div>
+      </details>
+      <details id="hrs" class="hrs" open>
+        <summary><span>🕒 Когда лучше искать сделки</span></summary>
+        <div id="hrb"></div>
+      </details>
+      <details id="fn" class="hrs">
+        <summary><span>🔍 Почему мало сигналов (воронка отсева)</span></summary>
+        <div id="fnb"></div>
+      </details>
+      <details id="mcd" class="hrs">
+        <summary><span>🎲 Симулятор будущего (Монте-Карло)</span></summary>
+        <canvas id="mcc" style="width:100%;height:220px;display:none;margin-top:10px"></canvas>
+        <div id="mct" class="ms" style="margin-top:10px"></div>
+        <button class="btn ghost" id="mcr">Пересчитать</button>
+      </details>
+      <details id="mpd" class="hrs" style="grid-column: 1 / -1">
+        <summary><span>🗺️ Карта рынка (топ-60 по 24ч %)</span></summary>
+        <div id="mpb" class="mapg"></div>
+      </details>
+    </div>
+
+    <div class="sig-toolbar">
+      <div class="chips" id="flt" style="margin:0"></div>
+      <select id="sigSort" class="sig-sort" aria-label="Сортировка сигналов">
+        <option value="new">Сначала новые</option>
+        <option value="conf">По баллам подтверждений</option>
+        <option value="pnl">По результату (R)</option>
+      </select>
+    </div>
+
+    <div id="list"></div>
+
+    <details>
+      <summary>⚙️ Настройки риска и стратегии</summary>
+      <div class="set">
+        <div><label for="dep">Депозит, USDT</label><input id="dep" type="number" min="1" value="1000"></div>
+        <div><label for="risk">Риск на сделку, % (консервативно 0,5)</label><input id="risk" type="number" min="0.1" max="5" step="0.1" value="0.5"></div>
+        <div><label for="mlev">Макс. плечо</label><input id="mlev" type="number" min="1" max="50" value="5"></div>
+        <div><label for="rr">ТП2, R:R (меняет Lab)</label><input id="rr" type="number" min="1.5" max="6" step="0.1" value="3"></div>
+        <div><label for="atrm">Стоп, ATR× (меняет Lab)</label><input id="atrm" type="number" min="0.5" max="5" step="0.1" value="1.5"></div>
+        <div><label for="slipbp">Проскальзывание, б.п. (меняет Lab)</label><input id="slipbp" type="number" min="0" max="50" step="0.5" value="3"></div>
+        <div><label for="maxopen">Макс. открытых</label><input id="maxopen" type="number" min="1" max="20" value="4"></div>
+        <div><label for="maxside">Макс. в одну сторону (корреляция)</label><input id="maxside" type="number" min="1" max="20" value="3"></div>
+        <div><label for="maxexp">Макс. общая позиция, × депозита</label><input id="maxexp" type="number" min="0.5" max="20" step="0.5" value="3"></div>
+        <div><label for="dloss">Дневной лимит убытка, R</label><input id="dloss" type="number" min="1" max="20" step="0.5" value="3"></div>
+        <div><label for="stoplim">Лимит стопов в день</label><input id="stoplim" type="number" min="1" max="20" value="3"></div>
+        <div><label for="pausemin">Пауза после 3 стопов подряд, мин</label><input id="pausemin" type="number" min="10" max="2880" value="240"></div>
+        <div><label for="minvol">Мин. оборот 24ч, млн $</label><input id="minvol" type="number" min="0" value="10"></div>
+        <div><label for="ncoins">Сколько монет сканировать (до 600)</label><input id="ncoins" type="number" min="3" max="600" value="500"></div>
+        <div><label for="labn">Монет в Lab (5–60)</label><input id="labn" type="number" min="5" max="60" value="20"></div>
+        <label class="chk-lbl"><input type="checkbox" id="btgate" checked>Требовать доказанное преимущество стратегии (Lab). Рекомендуется: без этого сигналы не имеют статистического подтверждения</label>
+        <label class="chk-lbl"><input type="checkbox" id="labauto" checked>Автоматически запускать Lab при старте, если результат старше 24 часов</label>
+        <div style="grid-column:1/-1"><label for="lgc">Стратегия</label><select id="lgc"><option value="auto">Авто: все стратегии, торгуются только прошедшие проверку</option><option value="ema_pb">EMA-откат</option><option value="ema_x">EMA-пересечение</option><option value="smc">Smart Money</option><option value="sweep">Снятие ликвидности</option><option value="vbo">Пробой с объёмом</option><option value="trend">Трендовый (Donchian)</option><option value="combo">Комбинированная</option></select></div>
+        <div style="grid-column:1/-1"><label for="cmin">Минимальный класс сигнала</label><select id="cmin"><option value="B" selected>B и выше (≥ 5 подтверждений из 10)</option><option value="A">A и выше (≥ 7)</option><option value="A+">Только A+ (≥ 9)</option></select></div>
+        <label class="chk-lbl"><input type="checkbox" id="blk" checked>Не показывать новые сигналы, когда рынок в красной зоне</label>
+        <label class="chk-lbl"><input type="checkbox" id="vox">Озвучивать сигналы голосом (русский)</label>
+        <div style="grid-column:1/-1"><label for="thm">Тема оформления</label><select id="thm"><option value="indigo">Индиго</option><option value="emerald">Изумруд</option><option value="sunset">Закат</option><option value="graphite">Графит</option><option value="cyber">Киберпанк Pro</option></select></div>
+      </div>
+      <button class="btn" id="notif">Разрешить уведомления браузера</button>
+      <div class="btn-row">
+        <button class="btn ghost" id="clr">Очистить журнал сигналов</button>
+        <button class="btn ghost" id="csv">Экспорт журнала в CSV</button>
+        <button class="btn ghost" id="bk">Скопировать резервную копию</button>
+        <button class="btn ghost" id="rs">Восстановить из резервной копии</button>
+      </div>
+    </details>
+
+    <p class="note"><b>Как работает v21.</b> Каждая стратегия (EMA-откат, EMA-пересечение, Smart Money, снятие ликвидности, пробой с объёмом, Donchian, комбинированная) на закрытой свече даёт кандидата. Сетап получает 0–10 подтверждений из независимых групп (тренд, Smart Money, объём, моментум, запас хода до уровня): ≥5 → класс B, ≥7 → A, ≥9 → A+; ниже — NO TRADE. Старший ТФ и BTC не должны идти против сделки. Стратегия допускается к торговле <b>только если в Lab</b> у неё доказано положительное ожидание после комиссий (taker 0,055% / maker 0,02%), проскальзывания и funding на данных train+validation (с поправкой на множественные проверки). Результат на невидимых данных (OOS) и walk-forward показан в Lab. Если доказательств нет — NO TRADE: это штатный результат, а не ошибка. Балл подтверждений и «класс» — это не вероятность; частота прибыльных сделок показывается только когда она откалибрована в Lab на ≥30 сделках. Деривативы (OI, funding, спред) не проверены бэктестом, поэтому могут лишь понизить класс. CVD не считается (нет данных об агрессоре). Вход считается по закрытию свечи, стоп/тейк в одной свече — стоп первым. Риск на сделку не растёт после убытка. Это не финансовая рекомендация и не гарантия прибыли: сначала проверь на демо. Горячие клавиши: / поиск, M звук, A все монеты, F избранное.</p>
+  </div>
+</div>
+
+<!-- IN-PAGE MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal-card">
+    <h3 id="modTitle">Настройка</h3>
+    <p id="modSub"></p>
+    <div id="modList" class="modal-list"></div>
+    <div id="modPresets" class="modal-presets"></div>
+    <input id="modInp" type="text" placeholder="">
+    <textarea id="modTxt" rows="4" style="display:none" placeholder=""></textarea>
+    <div class="modal-actions">
+      <button class="btn ghost" id="modCancel">Отмена</button>
+      <button class="btn" id="modOk">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div id="pg"></div>
+<div id="toast"></div>
+<script>
+try{if(window.__STATE)for(const k in window.__STATE)if(localStorage.getItem(k)==null&&window.__STATE[k]!=null)localStorage.setItem(k,window.__STATE[k])}catch(e){}
+let COINS=["BTCUSDT","ETHUSDT","SOLUSDT","XRPUSDT","DOGEUSDT","BNBUSDT","ADAUSDT","AVAXUSDT","LINKUSDT","TONUSDT","SUIUSDT","LTCUSDT","DOTUSDT","NEARUSDT","APTUSDT","ARBUSDT","OPUSDT","INJUSDT","TRXUSDT","1000PEPEUSDT","BCHUSDT","ATOMUSDT","FILUSDT","UNIUSDT","AAVEUSDT","ETCUSDT","HBARUSDT","ICPUSDT","RUNEUSDT","SEIUSDT","TIAUSDT","WLDUSDT","FETUSDT","TAOUSDT","ENAUSDT","1000BONKUSDT","WIFUSDT","JUPUSDT","ONDOUSDT","PENDLEUSDT","MKRUSDT","CRVUSDT","LDOUSDT","STXUSDT","IMXUSDT","GALAUSDT","SANDUSDT","MANAUSDT","AXSUSDT","APEUSDT","DYDXUSDT","SNXUSDT","COMPUSDT","EGLDUSDT","FTMUSDT","ALGOUSDT","XLMUSDT","VETUSDT","THETAUSDT","KASUSDT","TRBUSDT","ORDIUSDT","JTOUSDT","PYTHUSDT","STRKUSDT","ZROUSDT","WUSDT","NOTUSDT","1000FLOKIUSDT","1000SHIBUSDT","RENDERUSDT","ARKMUSDT","EIGENUSDT","IOUSDT","ZKUSDT","MOVEUSDT"];
+const TFS={"1":"1м","3":"3м","5":"5м","15":"15м","30":"30м","60":"1ч","240":"4ч"};
+const D={};const initCoin=s=>{if(!D[s])D[s]={price:0,dir:"",tf:{}}};COINS.forEach(initCoin);
+let ctf="",hov=-1,alerts=[],fav=new Set(),hold=0,flt="all",cur="ALL",coinSortMode="def",sigSortMode="new",signals=[],cands=[],ws,sound=false,actx,watch=new Set(["15","60","240"]);
+const $=id=>document.getElementById(id);
+const num=id=>{const e=$(id);return e?(parseFloat(e.value)||0):0};
+const slot=(s,tf)=>D[s].tf[tf]||(D[s].tf[tf]={c:[],idx:0,last:-99});
+const name=s=>s.replace("USDT","");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const IDS=["dep","risk","mlev","rr","atrm","maxopen","stoplim","minvol","ncoins","dloss","maxside","maxexp","pausemin","slipbp","labn"];
+const CHK=["btgate","blk","vox","labauto"];
+const save=()=>{try{const o={watch:[...watch],chk:{}};IDS.forEach(k=>o[k]=num(k));CHK.forEach(k=>{const e=$(k);if(e)o.chk[k]=e.checked});o.lgc=$("lgc").value;o.cmin=$("cmin").value;o.thm=$("thm").value;localStorage.setItem("cfg5",JSON.stringify(o))}catch(e){}};
+const ui=()=>{try{localStorage.setItem("ui5",JSON.stringify({cur,flt,fav:[...fav],alerts,find:$("find").value}))}catch(e){}};
+const setSel=(id,v)=>{const e=$(id);if(e&&[...e.options].some(o=>o.value===String(v)))e.value=v};
+
+/* ===== BYBIT PRO V21 — ENGINE (чистые функции, без DOM; тестируется в Node) ===== */
+var ENG=(function(){
+"use strict";
+const DEF={
+ feeTaker:.00055,feeMaker:.0002,slip:.0003,fundRate:.0001, // комиссии Bybit (non-VIP), проскальзывание на рыночную заливку, funding за 8ч (платят лонги)
+ rr1:1,rr2:3,partial:.5,maxHold:96,                         // TP1 +1R (закрыть 50%, стоп в BE), TP2 +rr2·R, макс. удержание (свечей)
+ atrStop:1.5,atrCap:2.5,maxCostR:.25,maxBigBar:2.8,warm:210,
+ minPts:5,driftR:.3,dep:1000,riskPct:1,maxPartic:.02,minRoom:1.5
+};
+const mkP=o=>Object.assign({},DEF,o||{});
+const STRATS=["ema_pb","ema_x","smc","sweep","vbo","trend","combo"];
+const SNAME={ema_pb:"EMA-откат",ema_x:"EMA-пересечение",smc:"Smart Money",sweep:"Снятие ликвидности",vbo:"Пробой с объёмом",trend:"Трендовый (Donchian)",combo:"Комбинированная"};
+const BASE=["ema_pb","smc","sweep","vbo","trend"];                 // из них собирается combo
+const HT={"1":"15","3":"15","5":"60","15":"60","30":"240","60":"240","240":"240"}; // старший ТФ
+const GRADES=["NO TRADE","B","A","A+"];
+const gradeOf=pts=>pts>=9?"A+":pts>=7?"A":pts>=5?"B":"NO TRADE";
+const gradeRank=g=>GRADES.indexOf(g);
+
+/* ---------- индикаторы ---------- */
+function ema(a,n){const o=new Array(a.length).fill(NaN);if(a.length<n)return o;let s=0;for(let i=0;i<n;i++)s+=a[i];let e=s/n;o[n-1]=e;const k=2/(n+1);for(let i=n;i<a.length;i++){e=a[i]*k+e*(1-k);o[i]=e}return o}
+function rsiS(c,n=14){const o=new Array(c.length).fill(50);if(c.length<=n)return o;let g=0,l=0;
+ for(let i=1;i<=n;i++){const d=c[i]-c[i-1];d>0?g+=d:l-=d}g/=n;l/=n;o[n]=l?100-100/(1+g/l):100;
+ for(let i=n+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n;o[i]=l?100-100/(1+g/l):100}return o}
+function atrS(cs,n=14){const o=new Array(cs.length).fill(0);if(cs.length<=n)return o;const t=[];
+ for(let i=1;i<cs.length;i++){const p=cs[i-1].c;t.push(Math.max(cs[i].h-cs[i].l,Math.abs(cs[i].h-p),Math.abs(cs[i].l-p)))}
+ let a=0;for(let i=0;i<n;i++)a+=t[i];a/=n;o[n]=a;for(let i=n;i<t.length;i++){a=(a*(n-1)+t[i])/n;o[i+1]=a}return o}
+function adxS(cs,n=14){const L=cs.length,adx=new Array(L).fill(0),pdi=new Array(L).fill(0),mdi=new Array(L).fill(0);
+ if(L<2*n+2)return{adx,pdi,mdi};
+ let tr=0,pd=0,md=0,A=0,P2=0,M2=0;const dx=[];
+ for(let i=1;i<L;i++){const up=cs[i].h-cs[i-1].h,dn=cs[i-1].l-cs[i].l,p=cs[i-1].c;
+  const t=Math.max(cs[i].h-cs[i].l,Math.abs(cs[i].h-p),Math.abs(cs[i].l-p)),P=up>dn&&up>0?up:0,M=dn>up&&dn>0?dn:0;
+  if(i<=n){tr+=t;pd+=P;md+=M;if(i<n)continue;A=tr;P2=pd;M2=md}
+  else{A=A-A/n+t;P2=P2-P2/n+P;M2=M2-M2/n+M}
+  const pi=100*P2/A,mi=100*M2/A;pdi[i]=pi;mdi[i]=mi;dx.push([i,100*Math.abs(pi-mi)/((pi+mi)||1)])}
+ let a=0;for(let k=0;k<dx.length;k++){if(k<n){a+=dx[k][1];if(k===n-1){a/=n;adx[dx[k][0]]=a}}else{a=(a*(n-1)+dx[k][1])/n;adx[dx[k][0]]=a}}
+ return{adx,pdi,mdi}}
+/* свинг-пивоты: пивот на баре k подтверждается только через n баров (k+n) — стратегии берут k<=i-n */
+function pivots(cs,n=3){const L=cs.length,ph=new Array(L).fill(0),pl=new Array(L).fill(0);
+ for(let k=n;k<L-n;k++){let h=true,l=true;for(let j=1;j<=n;j++){if(cs[k].h<=cs[k-j].h||cs[k].h<=cs[k+j].h)h=false;if(cs[k].l>=cs[k-j].l||cs[k].l>=cs[k+j].l)l=false}if(h)ph[k]=cs[k].h;if(l)pl[k]=cs[k].l}
+ return{ph,pl}}
+function ind(cs){const L=cs.length,c=cs.map(x=>x.c),ax=adxS(cs),rv=new Array(L).fill(1);let s=0;
+ for(let i=0;i<L;i++){if(i>=20)rv[i]=cs[i].v/((s/20)||1);s+=cs[i].v;if(i>=20)s-=cs[i-20].v}
+ return{c,e9:ema(c,9),e21:ema(c,21),e50:ema(c,50),e200:ema(c,200),r:rsiS(c),a:atrS(cs),x:ax.adx,pdi:ax.pdi,mdi:ax.mdi,rv,...pivots(cs)}}
+const sma=(a,from,to)=>{let s=0;for(let k=from;k<to;k++)s+=a[k];return s/(to-from)};
+
+/* ---------- структура рынка ---------- */
+function swingsAt(I,i,cnt){const H=[],Lw=[];for(let k=i-3;k>0&&k>i-200&&(H.length<cnt||Lw.length<cnt);k--){if(I.ph[k]&&H.length<cnt)H.push(k);if(I.pl[k]&&Lw.length<cnt)Lw.push(k)}return{H,Lw}}
+function structure(I,i){const s=swingsAt(I,i,2);if(s.H.length<2||s.Lw.length<2)return 0;
+ const hh=I.ph[s.H[0]]>I.ph[s.H[1]],hl=I.pl[s.Lw[0]]>I.pl[s.Lw[1]],lh=I.ph[s.H[0]]<I.ph[s.H[1]],ll=I.pl[s.Lw[0]]<I.pl[s.Lw[1]];
+ return hh&&hl?1:lh&&ll?-1:0}
+/* CHoCH: структура была противоположной, текущая свеча закрылась за последним свингом против неё */
+function choch(I,cs,i,L){const s=swingsAt(I,i,2);if(s.H.length<2||s.Lw.length<2)return false;
+ if(L){const bear=I.ph[s.H[0]]<I.ph[s.H[1]]&&I.pl[s.Lw[0]]<I.pl[s.Lw[1]];return bear&&cs[i].c>I.ph[s.H[0]]&&cs[i-1].c<=I.ph[s.H[0]]}
+ const bull=I.ph[s.H[0]]>I.ph[s.H[1]]&&I.pl[s.Lw[0]]>I.pl[s.Lw[1]];return bull&&cs[i].c<I.pl[s.Lw[0]]&&cs[i-1].c>=I.pl[s.Lw[0]]}
+/* снятие ликвидности: экстремум окна [k-20,k-1] пробит тенью, закрытие обратно внутри (look = сколько последних баров смотрим) */
+function sweepAt(I,cs,i,L,look){const a=I.a[i];
+ for(let k=i;k>i-look;k--){let ex=L?1e18:0;for(let q=k-20;q<k;q++)ex=L?Math.min(ex,cs[q].l):Math.max(ex,cs[q].h);
+  if(L?(cs[k].l<ex&&cs[k].c>ex):(cs[k].h>ex&&cs[k].c<ex)){
+   // equal highs/lows: рядом с этим уровнем есть ещё один подтверждённый пивот (пул ликвидности)
+   let eq=0;const arr=L?I.pl:I.ph;for(let q=k-3;q>k-80&&q>0;q--){if(arr[q]&&Math.abs(arr[q]-ex)<=.2*a)eq++}
+   return{k,level:ex,eq:eq>=1}}}
+ return null}
+function roomR(I,i,L,p,risk){let best=null;
+ for(let k=i-3;k>i-150&&k>0;k--){const v=L?I.ph[k]:I.pl[k];if(v&&(L?v>p:v<p)){const d=Math.abs(v-p);if(best===null||d<best)best=d}}
+ return best===null?Infinity:best/risk}
+
+/* Smart Money контекст: слом структуры (BOS) -> откат в зону. Только данные до бара i включительно. */
+function smcCtx(I,cs,i,L){
+ const a=I.a[i],p=I.c[i],b=cs[i];if(!a||i<70)return null;
+ const pv=L?I.pl:I.ph,po=L?I.ph:I.pl;
+ let kl=-1;for(let k=i-3;k>i-60&&k>5;k--){if(pv[k]){kl=k;break}}if(kl<0)return null;
+ const Lv=pv[kl];let kp=-1;for(let k=kl-1;k>kl-40&&k>0;k--){if(po[k]){kp=k;break}}if(kp<0)return null;
+ const PH=po[kp];let kb=-1;for(let k=kl+1;k<=i;k++){if(L?cs[k].c>PH:cs[k].c<PH){kb=k;break}}if(kb<0||kb>=i)return null;
+ let kt=kb,Hv=L?cs[kb].h:cs[kb].l;for(let k=kb;k<=i;k++){const v=L?cs[k].h:cs[k].l;if(L?v>Hv:v<Hv){Hv=v;kt=k}}
+ const leg=Math.abs(Hv-Lv);if(leg<1.5*a||i-kt>40||i-kt<2)return null;
+ const retr=L?(Hv-p)/leg:(p-Hv)/leg;if(retr<.5||retr>.79)return null;
+ for(let k=kt;k<=i;k++){if(L?cs[k].l<Lv:cs[k].h>Lv)return null}
+ let ob=false;for(let k=kb-1;k>=kl&&k>kb-8;k--){if(L?cs[k].c<cs[k].o:cs[k].c>cs[k].o){const z0=cs[k].l,z1=cs[k].h;if(L?(b.l<=z1&&b.l>=z0-.3*a):(b.h>=z0&&b.h<=z1+.3*a))ob=true;break}}
+ let fvg=false;for(let k=kl+1;k<kt;k++){if(L?cs[k-1].h<cs[k+1].l:cs[k-1].l>cs[k+1].h){const g0=L?cs[k-1].h:cs[k+1].h,g1=L?cs[k+1].l:cs[k-1].l;if(L?(b.l<=g1&&b.l>=g0-.3*a):(b.h>=g0&&b.h<=g1+.3*a))fvg=true}}
+ const fl=r=>L?Hv-r*leg:Hv+r*leg;
+ return{L,Lv,Hv,leg,retr,ote:retr>=.618&&retr<=.786,ob,fvg,sw:Math.abs(p-Lv)+.2*a,fib:[fl(.618),fl(.786)],z:[fl(.618),fl(.786)]}}
+
+/* ---------- стратегии: каждая видит только cs[0..i] ---------- */
+const emaTrend=(I,i,L)=>L?(I.e21[i]>I.e50[i]&&I.e50[i]>I.e200[i]):(I.e21[i]<I.e50[i]&&I.e50[i]<I.e200[i]);
+function swLow(cs,from,to,L){let m=L?1e18:0;for(let k=from;k<=to;k++)m=L?Math.min(m,cs[k].l):Math.max(m,cs[k].h);return m}
+const S={
+ ema_x(I,cs,i){const a=I.a[i],p=I.c[i];if(!a||i<205)return null;
+  const up=I.e9[i-1]<=I.e21[i-1]&&I.e9[i]>I.e21[i],dn=I.e9[i-1]>=I.e21[i-1]&&I.e9[i]<I.e21[i];if(!up&&!dn)return null;
+  const L=up,m=swLow(cs,i-7,i,L);return{strat:"ema_x",side:L?"LONG":"SHORT",sw:(L?p-m:m-p)+.2*a,tags:["пересечение EMA9/21"]}},
+ ema_pb(I,cs,i){const a=I.a[i],p=I.c[i];if(!a||i<205)return null;const b=cs[i],pv=cs[i-1];
+  const tU=emaTrend(I,i,true),tD=emaTrend(I,i,false);let tl=false,ts=false;
+  for(let k=i-4;k<=i;k++){if(cs[k].l<=I.e21[k]+.25*a&&cs[k].l>=I.e50[k]-.5*a)tl=true;if(cs[k].h>=I.e21[k]-.25*a&&cs[k].h<=I.e50[k]+.5*a)ts=true}
+  const r=I.r[i],r0=I.r[i-1];
+  const pbL=tU&&tl&&b.c>b.o&&b.c>pv.h&&p>I.e21[i]&&r>r0,pbS=tD&&ts&&b.c<b.o&&b.c<pv.l&&p<I.e21[i]&&r<r0;
+  if(!pbL&&!pbS)return null;const L=pbL,m=swLow(cs,i-7,i,L);
+  return{strat:"ema_pb",side:L?"LONG":"SHORT",sw:(L?p-m:m-p)+.2*a,tags:["откат к EMA21/50 по тренду"]}},
+ smc(I,cs,i){const b=cs[i],pc=cs[i-1];
+  for(const L of [true,false]){const c=smcCtx(I,cs,i,L);if(!c)continue;
+   if(!(L?(b.c>b.o&&b.c>pc.h):(b.c<b.o&&b.c<pc.l)))continue;if(!(c.ote||c.ob||c.fvg))continue;
+   const tg=["BOS + откат"];if(c.ote)tg.push("OTE 0,618–0,786");if(c.ob)tg.push("ордерблок");if(c.fvg)tg.push("FVG");
+   return{strat:"smc",side:L?"LONG":"SHORT",sw:c.sw,tags:tg,fib:c.fib}}
+  return null},
+ sweep(I,cs,i){const a=I.a[i],p=I.c[i],b=cs[i];if(!a||i<60)return null;const rg=b.h-b.l||1;
+  for(const L of [true,false]){const w=sweepAt(I,cs,i,L,1);if(!w)continue;
+   if(I.rv[i]<1.2)continue;if(L?((b.c-b.l)/rg<.55||b.c<=b.o):((b.h-b.c)/rg<.55||b.c>=b.o))continue;
+   const sw=(L?p-b.l:b.h-p)+.2*a;return{strat:"sweep",side:L?"LONG":"SHORT",sw,tags:["снятие ликвидности"+(w.eq?" (equal "+(L?"lows":"highs")+")":"")]}}
+  return null},
+ vbo(I,cs,i){const a=I.a[i],b=cs[i],p=I.c[i];if(!a||i<205||Math.abs(b.c-b.o)<a)return null;
+  let hh=0,ll=1e18;for(let k=i-20;k<i;k++){hh=Math.max(hh,cs[k].h);ll=Math.min(ll,cs[k].l)}
+  if(I.rv[i]<1.8)return null;const L=b.c>b.o,rg=b.h-b.l||1;
+  if(L?!(p>hh&&emaTrend(I,i,true)):!(p<ll&&emaTrend(I,i,false)))return null;
+  if(Math.abs(p-I.e21[i])>2.5*a||(L?(b.c-b.l)/rg<.7:(b.h-b.c)/rg<.7))return null;
+  return{strat:"vbo",side:L?"LONG":"SHORT",sw:(L?p-swLow(cs,i-2,i,true):swLow(cs,i-2,i,false)-p)+.2*a,tags:["пробой диапазона 20, объём ×"+I.rv[i].toFixed(1)]}},
+ trend(I,cs,i){const a=I.a[i],p=I.c[i];if(!a||i<205)return null;
+  let hh=0,ll=1e18;for(let k=i-20;k<i;k++){hh=Math.max(hh,cs[k].h);ll=Math.min(ll,cs[k].l)}
+  const L=p>hh,Sx=p<ll;if(!L&&!Sx)return null;
+  if(I.x[i]<22||(L?I.pdi[i]<=I.mdi[i]:I.mdi[i]<=I.pdi[i])||!emaTrend(I,i,L)||I.rv[i]<1)return null;
+  const m=swLow(cs,i-5,i,L);return{strat:"trend",side:L?"LONG":"SHORT",sw:(L?p-m:m-p)+.2*a,tags:["пробой Donchian-20, ADX "+I.x[i].toFixed(0)]}}
+};
+/* candAt: кандидат стратегии на баре i (memo — кэш на серию). combo = ≥2 разных базовых стратегии одной стороны за 3 бара */
+function candAt(name,I,cs,i,P,memo){
+ memo=memo||{};const m=memo[name]||(memo[name]=new Array(cs.length));if(m[i]!==undefined)return m[i];
+ let r=null;
+ if(name==="combo"){const found={LONG:{},SHORT:{}};let cur=null;
+  for(let j=i;j>=i-2;j--)for(const b of BASE){const c=candAt(b,I,cs,j,P,memo);if(c){found[c.side][b]=1;if(j===i&&!cur)cur=c}}
+  for(const sd of ["LONG","SHORT"]){const ks=Object.keys(found[sd]);if(cur&&cur.side===sd&&ks.length>=2){r={strat:"combo",side:sd,sw:cur.sw,tags:["совпали: "+ks.map(k=>SNAME[k]).join(" + ")],fib:cur.fib};break}}
+ }else r=S[name](I,cs,i)||null;
+ m[i]=r;return r}
+
+/* ---------- оценка качества сетапа (независимые группы подтверждений) ---------- */
+const riskDist=(c,a,P)=>Math.max(P.atrStop*a,Math.min(c.sw,P.atrCap*a));
+function confluence(c,I,cs,i,P,risk){
+ const L=c.side==="LONG",p=I.c[i],ck=[];let pts=0;
+ const add=(g,ok,txt)=>{ck.push({g,ok:!!ok,txt});if(ok)pts++};
+ add("Тренд",L?(p>I.e50[i]&&emaTrend(I,i,true)):(p<I.e50[i]&&emaTrend(I,i,false)),"EMA 21/50/200 выстроены по направлению");
+ add("Тренд",I.x[i]>=20&&(L?I.pdi[i]>I.mdi[i]:I.mdi[i]>I.pdi[i]),"ADX ≥ 20 и DI+/DI− по направлению");
+ const st=structure(I,i);add("Тренд",L?st===1:st===-1,"структура "+(L?"HH/HL":"LH/LL"));
+ const sc=smcCtx(I,cs,i,L);
+ add("Smart Money",!!sc||choch(I,cs,i,L),"слом структуры: BOS + откат или CHoCH");
+ add("Smart Money",!!(sc&&(sc.ote||sc.ob||sc.fvg)),"вход из зоны OTE / ордерблока / FVG");
+ const sw=sweepAt(I,cs,i,L,3);add("Smart Money",!!sw,"снятие ликвидности"+(sw&&sw.eq?" (equal "+(L?"lows":"highs")+")":""));
+ add("Объём",I.rv[i]>=1.3,"относительный объём ≥ 1,3 (сейчас ×"+I.rv[i].toFixed(1)+")");
+ add("Объём",I.rv[i]>=2,"объёмный импульс ≥ 2");
+ const r=I.r[i];add("Моментум",L?(r>=45&&r<=70):(r>=30&&r<=55),"RSI в рабочей зоне ("+r.toFixed(0)+")");
+ const rm=roomR(I,i,L,p,risk);add("Риск",rm>=2.5,"до ближайшего уровня ≥ 2,5R"+(isFinite(rm)?" (≈"+rm.toFixed(1)+"R)":""));
+ return{pts,checks:ck,room:rm}}
+
+/* единый разбор бара: используется И бэктестом, И живым сканером */
+function evalBar(name,I,cs,i,P,ctx,memo){
+ const c=candAt(name,I,cs,i,P,memo);if(!c)return{ok:false,none:true};
+ const a=I.a[i],p=I.c[i];
+ if(cs[i].h-cs[i].l>P.maxBigBar*a)return{ok:false,cand:c,reason:"слишком большая свеча"};
+ const L=c.side==="LONG",h=ctx.htf[i],b=ctx.btc[i];
+ if(!(L?h===1:h===-1))return{ok:false,cand:c,reason:"против тренда старшего ТФ"};
+ if(L?b===-1:b===1)return{ok:false,cand:c,reason:"против тренда BTC"};
+ const risk=riskDist(c,a,P),costR=(2*P.feeTaker+2*P.slip)*p/risk;
+ if(costR>P.maxCostR)return{ok:false,cand:c,reason:"комиссии и проскальзывание съедают стоп ("+costR.toFixed(2)+"R)"};
+ const q=confluence(c,I,cs,i,P,risk);
+ if(q.room<P.minRoom)return{ok:false,cand:c,reason:"мало места до ближайшего уровня (<"+P.minRoom+"R)"};
+ return{ok:true,cand:c,risk,costR,pts:q.pts,checks:q.checks,room:q.room,grade:gradeOf(q.pts)}}
+
+/* ---------- исполнение / симуляция сделки (бэктест и сверка журнала) ---------- */
+const FUND_MS=8*3600*1000;
+function simTrade(cs,i,side,risk,tm,P,fx){   // fx = {fill,sl,tp1,tp2}: сверка уже выданного сигнала по его собственным уровням
+ const n=cs.length;if(i+1>=n||!(risk>0))return null;
+ const L=side==="LONG",d=L?1:-1,b0=cs[i+1];
+ if(!fx&&Math.abs(b0.o-cs[i].c)>P.driftR*risk)return{skip:"drift"};     // вход по рынку с уходом >0,3R не берём (как «вход упущен»)
+ const fill=fx?fx.fill:b0.o*(1+d*P.slip),sl=fx?fx.sl:fill-d*risk,tp1=fx?fx.tp1:fill+d*P.rr1*risk,tp2=fx?fx.tp2:fill+d*P.rr2*risk;
+ let stop=sl,p1=false,rem=1,gross=0,fees=P.feeTaker*fill,status="time",jx=i+1,lastPx=fill;
+ const last=Math.min(n-1,i+P.maxHold),close=(fr,px,mk)=>{lastPx=px;gross+=fr*d*(px-fill);fees+=fr*px*(mk?P.feeMaker:P.feeTaker)};
+ const stopPx=b=>(L?Math.min(stop,b.o):Math.max(stop,b.o))*(1-d*P.slip);   // гэп хуже стопа -> исполняем по открытию
+ for(let j=i+1;j<=last;j++){const b=cs[j];jx=j;const hs=L?b.l<=stop:b.h>=stop;
+  if(!p1){
+   if(hs){close(rem,stopPx(b),false);rem=0;status="stop";break}                // стоп и тейк в одной свече -> считаем стоп первым
+   if(L?b.h>=tp1:b.l<=tp1){close(P.partial,tp1,true);rem-=P.partial;p1=true;stop=fill;
+    // порядок внутри свечи неизвестен: считаем, что путь O→H→L (лонг) / O→L→H (шорт), если открытие ближе к соответствующему краю
+    const near=L?(b.h-b.o)<(b.o-b.l):(b.o-b.l)<(b.h-b.o);
+    if(near&&(L?b.l<=stop:b.h>=stop)){close(rem,fill*(1-d*P.slip),false);rem=0;status="be";break} // после ТП1 свеча вернулась к входу -> безубыток раньше ТП2
+    if(L?b.h>=tp2:b.l<=tp2){close(rem,tp2,true);rem=0;status="take";break}}
+  }else{
+   if(hs){close(rem,stopPx(b),false);rem=0;status="be";break}
+   if(L?b.h>=tp2:b.l<=tp2){close(rem,tp2,true);rem=0;status="take";break}}}
+ if(rem>0){close(rem,cs[jx].c*(1-d*P.slip),false);status="time"}
+ const t1=cs[jx].t+tm,nF=Math.floor(t1/FUND_MS)-Math.floor(b0.t/FUND_MS),fund=L?P.fundRate*fill*nF:0; // funding: платят лонги (консервативно: шорты не получают)
+ return{i,j:jx,t:b0.t,te:t1,side,fill,sl,tp1,tp2,R:(gross-fees-fund)/risk,grossR:gross/risk,costR:(fees+fund)/risk,status,p1,bars:jx-i,risk,exitPx:lastPx}}
+function eqCurve(trs,rp){const s=trs.slice().sort((a,b)=>a.te-b.te);let E=1;const o=[[s.length?s[0].t:0,0]];s.forEach(x=>{E*=Math.max(0,1+rp*x.R);o.push([x.te,E-1])});return o}
+
+/* ---------- сопоставление старшего ТФ без заглядывания вперёд ---------- */
+function trendArr(cs){const c=cs.map(x=>x.c),a=ema(c,50),b=ema(c,200);return c.map((p,i)=>i<200?0:(p>a[i]&&a[i]>b[i]?1:p<a[i]&&a[i]<b[i]?-1:0))}
+function mapHtf(cs,tm,hcs,hm){const T=trendArr(hcs),out=new Int8Array(cs.length);let r=-1;
+ for(let i=0;i<cs.length;i++){const e=cs[i].t+tm;while(r+1<hcs.length&&hcs[r+1].t+hm<=e)r++;out[i]=r<0?0:T[r]}return out}
+
+/* ---------- расчёт позиции (учёт шагов Bybit, плеча и ликвидации) ---------- */
+function sizePosition(o){
+ const e=o.entry,dist=Math.abs(o.entry-o.sl),mm=o.maxMarginFrac||.5;
+ if(!(dist>0)||!(o.equity>0))return{ok:false,why:"нулевой стоп или депозит"};
+ const cpu=e*2*((o.feeTaker??DEF.feeTaker)+(o.slip??DEF.slip)),riskU=o.equity*o.riskPct/100;
+ if(dist/e<(o.minStopPct||.0025))return{ok:false,why:"стоп уже "+((o.minStopPct||.0025)*100).toFixed(2)+"% — комиссии съедят прибыль"};
+ let lev=Math.max(1,Math.min(o.maxLev,Math.floor(1/(2*dist/e+.005))));        // ликвидация ≥ 2 стопов от входа
+ let qty=Math.min(riskU/(dist+cpu),o.equity*mm*lev/e);
+ if(o.step)qty=Math.floor(qty/o.step+1e-9)*o.step;
+ const dec=o.step?(String(o.step).split(".")[1]||"").replace(/0+$/,"").length:6;
+ qty=+qty.toFixed(dec);
+ if(qty<(o.minQty||0)||qty<=0||(o.minNotional&&qty*e<o.minNotional))return{ok:false,small:true,why:"объём меньше минимального лота/номинала Bybit",qty};
+ const notional=qty*e;
+ return{ok:true,qty,lev,margin:notional/lev,riskU:qty*(dist+cpu),notional,liq:o.side==="LONG"?e*(1-1/lev+.005):e*(1+1/lev-.005),cost:qty*cpu}}
+
+/* ---------- метрики ---------- */
+const dayOf=t=>Math.floor(t/864e5);
+function clusterT(trs){if(trs.length<2)return 0;const g={};let S=0,N=0;trs.forEach(x=>{const k=dayOf(x.t);(g[k]||(g[k]={s:0,n:0}));g[k].s+=x.R;g[k].n++;S+=x.R;N++});
+ const m=S/N;let v=0;for(const k in g)v+=Math.pow(g[k].s-m*g[k].n,2);const se=Math.sqrt(v)/N;return se>0?m/se:0}
+function wilson(k,n,z=1.96){if(!n)return[0,1];const p=k/n,d=1+z*z/n,c=p+z*z/(2*n),w=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n));return[(c-w)/d,(c+w)/d]}
+function metrics(trs,o){o=o||{};const rp=(o.riskPct??1)/100,tmin=o.tfMin||0;
+ const n=trs.length,z={n,wins:0,wr:0,avgW:0,avgL:0,pf:0,exp:0,sumR:0,t:0,maxDDR:0,maxDDpct:0,retPct:0,sharpe:0,sortino:0,avgBars:0,avgMin:0,days:0};if(!n)return z;
+ const s=trs.slice().sort((a,b)=>a.te-b.te);let w=0,gp=0,gl=0,sw=0,sl=0,eq=0,pk=0,dd=0,E=1,Ep=1,ddp=0,bars=0;
+ s.forEach(x=>{if(x.R>0){w++;gp+=x.R;sw+=x.R}else{gl-=x.R;sl+=x.R}eq+=x.R;pk=Math.max(pk,eq);dd=Math.min(dd,eq-pk);E*=Math.max(0,1+rp*x.R);Ep=Math.max(Ep,E);ddp=Math.max(ddp,1-E/Ep);bars+=x.bars||0});
+ const dm={};s.forEach(x=>{const k=dayOf(x.te);dm[k]=(dm[k]||0)+x.R});const k0=dayOf(s[0].te),k1=dayOf(s[n-1].te),nd=k1-k0+1,dr=[];
+ for(let k=k0;k<=k1;k++)dr.push((dm[k]||0)*rp);const mu=dr.reduce((a,b)=>a+b,0)/nd,sd=Math.sqrt(dr.reduce((a,b)=>a+Math.pow(b-mu,2),0)/Math.max(1,nd-1)),dd2=Math.sqrt(dr.reduce((a,b)=>a+Math.pow(Math.min(0,b),2),0)/nd);
+ return{n,wins:w,wr:w/n,avgW:w?sw/w:0,avgL:n-w?sl/(n-w):0,pf:gl>0?gp/gl:(gp>0?Infinity:0),exp:eq/n,sumR:eq,t:clusterT(trs),maxDDR:dd,maxDDpct:ddp*100,retPct:(E-1)*100,
+  sharpe:sd>0?mu/sd*Math.sqrt(365):0,sortino:dd2>0?mu/dd2*Math.sqrt(365):0,avgBars:bars/n,avgMin:bars/n*tmin,days:nd}}
+
+/* портфельная симуляция с ограничениями риска (одновременные позиции, сторона, дневной лимит, серия стопов) */
+function portfolio(trs,o){o=Object.assign({maxOpen:5,maxSide:3,dayLossR:3,streak:3,pauseMs:4*36e5},o||{});
+ const s=trs.slice().sort((a,b)=>a.t-b.t),open=[],acc=[],dayR={};let st=0,pauseTo=0;
+ const done=[];
+ for(const x of s){
+  for(let k=open.length-1;k>=0;k--)if(open[k].te<=x.t){const y=open.splice(k,1)[0];done.push(y)}
+  done.sort((a,b)=>a.te-b.te);while(done.length){const y=done.shift();dayR[dayOf(y.te)]=(dayR[dayOf(y.te)]||0)+y.R;if(y.R<0&&y.status==="stop"){st++;if(st>=o.streak){pauseTo=Math.max(pauseTo,y.te+o.pauseMs);st=0}}else if(y.R>0)st=0}
+  if(x.t<pauseTo)continue;
+  if((dayR[dayOf(x.t)]||0)<=-o.dayLossR)continue;
+  if(open.length>=o.maxOpen)continue;if(open.filter(y=>y.side===x.side).length>=o.maxSide)continue;
+  open.push(x);acc.push(x)}
+ return acc}
+
+/* блочный бутстрап по дням: сохраняет кластеризацию сделок внутри дня */
+function monteCarlo(trs,o){o=Object.assign({paths:600,days:60,riskPct:1,seed:12345},o||{});
+ if(trs.length<20)return null;const g={};trs.forEach(x=>{(g[dayOf(x.te)]||(g[dayOf(x.te)]=[])).push(x.R)});const days=Object.values(g);if(days.length<10)return null;
+ let sd=o.seed;const rnd=()=>{sd=(sd*1664525+1013904223)%4294967296;return sd/4294967296};
+ const rp=o.riskPct/100,fin=[],dds=[],paths=[];
+ for(let p=0;p<o.paths;p++){let E=1,pk=1,dd=0;const pa=new Float32Array(o.days+1);pa[0]=1;for(let d=0;d<o.days;d++){const day=days[(rnd()*days.length)|0];for(const r of day)E*=Math.max(0,1+rp*r);pk=Math.max(pk,E);dd=Math.max(dd,1-E/pk);pa[d+1]=E}fin.push(E);dds.push(dd);paths.push(pa)}
+ const q=(a,f)=>{const b=Array.from(a).sort((x,y)=>x-y);return b[Math.min(b.length-1,Math.floor(f*b.length))]};
+ const bands=[];for(let t=0;t<=o.days;t++){const col=paths.map(p=>p[t]);bands.push([q(col,.05),q(col,.25),q(col,.5),q(col,.75),q(col,.95)])}
+ return{bands,paths:o.paths,days:o.days,pPlus:fin.filter(v=>v>1).length/o.paths,med:q(fin,.5)-1,p05:q(fin,.05)-1,p95:q(fin,.95)-1,ddMed:q(dds,.5),dd20:dds.filter(v=>v>.2).length/o.paths,ruin50:fin.filter(v=>v<.5).length/o.paths}}
+
+/* ---------- сканирование серии (бэктест) ---------- */
+function scanSeries(sym,tf,cs,htfCs,btcCs,P,names){
+ const tm=tf*6e4,I=ind(cs),z=new Int8Array(cs.length);
+ const ctx={htf:mapHtf(cs,tm,htfCs,HT[tf]*6e4),btc:sym==="BTCUSDT"?z:mapHtf(cs,tm,btcCs,3.6e6)};
+ const memo={},out=[];
+ for(const name of names||STRATS){let i=P.warm;
+  while(i<cs.length-2){
+   const e=evalBar(name,I,cs,i,P,ctx,memo);
+   if(e.ok){let at=0;for(let k=i-19;k<=i;k++)at+=cs[k].c*cs[k].v;at/=20;
+    const notional=P.dep*P.riskPct/100/(e.risk/cs[i].c);
+    if(notional<=P.maxPartic*at){const sim=simTrade(cs,i,e.cand.side,e.risk,tm,P);
+     if(sim&&!sim.skip){out.push(Object.assign(sim,{sym,tf,strat:name,pts:e.pts,grade:e.grade,tags:e.checks.filter(x=>x.ok).map(x=>x.txt.split(" (")[0]),room:e.room}));i=sim.j;continue}}}
+   i++}}
+ return out}
+
+/* ---------- анализ лаборатории: сплиты, отбор, OOS, walk-forward ---------- */
+/* Пороги отбора заданы до просмотра OOS и не подбирались. Порог t — поправка Бонферрони: односторонний α=0,10 на всё семейство из m гипотез (ТФ × стратегии). */
+const SEL={minN:50,minMean:.05,alpha:.10};
+const zUpper=p=>{const t=Math.sqrt(-2*Math.log(p));return t-((0.010328*t+0.802853)*t+2.515517)/(((0.001308*t+0.189269)*t+1.432788)*t+1)};
+const tCrit=m=>zUpper(SEL.alpha/Math.max(1,m));
+function approveStats(sel,T1,tc){const tr=sel.filter(x=>x.te<=T1),va=sel.filter(x=>x.t>T1);const m=metrics(sel);
+ const ok=m.n>=SEL.minN&&m.exp>=SEL.minMean&&m.t>=tc&&tr.length>=10&&va.length>=10&&metrics(tr).exp>0&&metrics(va).exp>0;
+ return{ok,n:m.n,exp:m.exp,t:m.t,wr:m.wr,pf:m.pf,nTrain:tr.length,nVal:va.length,expTrain:tr.length?metrics(tr).exp:0,expVal:va.length?metrics(va).exp:0}}
+const groupBy=(a,f)=>{const o={};a.forEach(x=>{const k=f(x);(o[k]||(o[k]=[])).push(x)});return o};
+const TFMIN={"1":1,"3":3,"5":5,"15":15,"30":30,"60":60,"240":240};
+function analyze(trades,meta,P,o){
+ o=Object.assign({fTrain:.5,fVal:.7,folds:6,riskPct:1},o||{});const traded=x=>x.pts>=P.minPts;
+ const tfs=[...new Set(trades.map(x=>x.tf))].concat(Object.keys(meta||{}).map(k=>k.split("|")[1])).filter((v,i,a)=>a.indexOf(v)===i);
+ const B={};for(const tf of tfs){let a=Infinity,b=-Infinity;for(const k in meta){if(k.split("|")[1]!==tf)continue;a=Math.min(a,meta[k].t0);b=Math.max(b,meta[k].t1)}
+  if(a<b)B[tf]={t0:a,t1:b,T1:a+o.fTrain*(b-a),T2:a+o.fVal*(b-a)}}
+ const res={bounds:B,approved:{},approvals:[],tables:{},wfa:null,oos:null,calib:null,ablation:null,P:{...P},SEL};
+ const part=x=>{const b=B[x.tf];if(!b)return"none";return x.t<b.T1?"train":x.t<b.T2?"val":"oos"};
+ trades.forEach(x=>x.split=part(x));
+ // 1) отбор (tf×стратегия) ТОЛЬКО по train+val; сделки, чей выход пересекает границу, исключены (purge)
+ const sel=trades.filter(x=>traded(x)&&x.split!=="oos"&&x.split!=="none"&&x.te<=B[x.tf].T2);
+ const g=groupBy(sel,x=>x.tf+"|"+x.strat),tc=tCrit(tfs.length*STRATS.length);res.tCrit=tc;
+ for(const tf of tfs)for(const st of STRATS){const k=tf+"|"+st,a=approveStats(g[k]||[],B[tf]?B[tf].T1:0,tc);res.approvals.push({key:k,tf,strat:st,...a});if(a.ok)res.approved[k]=a}
+ const isApp=x=>!!res.approved[x.tf+"|"+x.strat];
+ // 2) честный OOS
+ const oosAll=trades.filter(x=>traded(x)&&x.split==="oos"),oosSel=oosAll.filter(isApp);
+ const pf=o2=>portfolio(o2,o.port);
+ const mk=(a)=>{const p=pf(a);return{raw:metrics(a,{riskPct:o.riskPct}),port:metrics(p,{riskPct:o.riskPct}),curve:eqCurve(p,o.riskPct/100),trades:p}};
+ res.oos={selected:mk(oosSel),allUnfiltered:mk(oosAll)};
+ res.oosTrades=res.oos.selected.trades.map(x=>({t:x.t,te:x.te,R:x.R,sym:x.sym,tf:x.tf,strat:x.strat,side:x.side,pts:x.pts,status:x.status}));
+ // 3) таблицы по OOS отобранных и по всей истории
+ const tbl=(arr,f)=>{const gg=groupBy(arr,f),out=[];for(const k in gg){const m=metrics(gg[k],{riskPct:o.riskPct});out.push({k,n:m.n,wr:m.wr,exp:m.exp,pf:m.pf,sumR:m.sumR,t:m.t})}return out.sort((a,b)=>b.n-a.n)};
+ res.tables={
+  coinOOSall:tbl(oosAll,x=>x.sym),tfOOSall:tbl(oosAll,x=>x.tf),stratOOSall:tbl(oosAll,x=>x.tf+"|"+x.strat),
+  coinOOSsel:tbl(oosSel,x=>x.sym),tfOOSsel:tbl(oosSel,x=>x.tf),stratOOSsel:tbl(oosSel,x=>x.tf+"|"+x.strat),
+  coinSel:tbl(sel,x=>x.sym),stratSel:tbl(sel,x=>x.tf+"|"+x.strat)};
+ // 4) калибровка классов: эмпирическая доля прибыльных (R>0) на валидации -> проверка на OOS
+ const cal={};for(const gr of ["B","A","A+"]){const gv=sel.filter(x=>x.grade===gr&&x.split==="val"&&isApp(x)),go=oosSel.filter(x=>x.grade===gr);
+  cal[gr]={val:{n:gv.length,w:gv.filter(x=>x.R>0).length,ci:wilson(gv.filter(x=>x.R>0).length,gv.length),exp:gv.length?metrics(gv).exp:0},oos:{n:go.length,w:go.filter(x=>x.R>0).length,ci:wilson(go.filter(x=>x.R>0).length,go.length),exp:go.length?metrics(go).exp:0}}}
+ res.calib=cal;
+ // 5) полезность отдельных подтверждений (все сделки, независимо от порога баллов): средний R с/без, train+val vs OOS
+ const tg=new Set();trades.forEach(x=>x.tags.forEach(t=>tg.add(t)));const ab=[];
+ for(const t of tg){const row={tag:t};for(const sp of ["tv","oos"]){const arr=trades.filter(x=>sp==="oos"?x.split==="oos":(x.split==="train"||x.split==="val")),w=arr.filter(x=>x.tags.includes(t)),wo=arr.filter(x=>!x.tags.includes(t));
+   row[sp]={nWith:w.length,expWith:w.length?metrics(w).exp:0,nWithout:wo.length,expWithout:wo.length?metrics(wo).exp:0}}ab.push(row)}
+ res.ablation=ab;
+ const pb=groupBy(trades.filter(x=>x.split==="oos"),x=>x.pts>=9?"9–10":x.pts>=7?"7–8":x.pts>=5?"5–6":"0–4");res.ptsOOS=Object.keys(pb).map(k=>({k,...(m=>({n:m.n,exp:m.exp,wr:m.wr}))(metrics(pb[k]))}));
+ // 6) Walk-forward (expanding): отбор по сделкам, закрытым ДО границы фолда, тест на следующем фолде
+ const wf=[],stitched=[];
+ for(const tf of Object.keys(B)){const b=B[tf],span=(b.t1-b.t0)/o.folds,bd=k=>b.t0+k*span;
+  for(let f=2;f<o.folds;f++){const lo=bd(f),hi=bd(f+1),T1=bd(Math.max(1,Math.floor(f/2))),
+    sl=trades.filter(x=>x.tf===tf&&traded(x)&&x.te<=lo),gg=groupBy(sl,x=>x.strat),ap={};
+   for(const st of STRATS){const a=approveStats(gg[st]||[],T1,tc);if(a.ok)ap[st]=1}
+   const test=trades.filter(x=>x.tf===tf&&traded(x)&&x.t>=lo&&x.t<hi&&ap[x.strat]);
+   wf.push({tf,fold:f,from:lo,to:hi,approved:Object.keys(ap),m:metrics(test,{riskPct:o.riskPct})});test.forEach(x=>stitched.push(x))}}
+ const sp=portfolio(stitched,o.port);res.wfa={folds:wf,all:metrics(stitched,{riskPct:o.riskPct}),port:metrics(sp,{riskPct:o.riskPct}),curve:eqCurve(sp,o.riskPct/100)};
+ res.mc=monteCarlo(res.oos.selected.trades,{riskPct:o.riskPct});
+ delete res.oos.selected.trades;delete res.oos.allUnfiltered.trades;
+ return res}
+
+/* ---------- утилиты живого режима ---------- */
+function regime(I,i){const a=I.a[i],n=Math.min(100,i-1);if(!a||n<20)return null;const al=I.a.slice(i-n,i).filter(x=>x>0).sort((p,q)=>p-q),med=al[al.length>>1]||a,vr=a/med,adx=I.x[i];
+ const tr=emaTrend(I,i,true)?1:emaTrend(I,i,false)?-1:0;
+ return{adx,vr,trend:tr,label:vr>1.8?"высокая волатильность":adx>=25?(tr>0?"сильный восходящий тренд":tr<0?"сильный нисходящий тренд":"тренд без выстроенных EMA"):adx<18?"флэт / диапазон":"умеренный тренд"}}
+
+return{DEF,mkP,STRATS,SNAME,BASE,HT,GRADES,gradeOf,gradeRank,SEL,TFMIN,tCrit,
+ ema,rsiS,atrS,adxS,pivots,ind,swingsAt,structure,choch,sweepAt,roomR,smcCtx,candAt,confluence,evalBar,riskDist,
+ simTrade,eqCurve,trendArr,mapHtf,sizePosition,metrics,clusterT,wilson,portfolio,monteCarlo,scanSeries,analyze,regime,groupBy}
+})();
+if(typeof module!=="undefined")module.exports=ENG;
+
+/* ===== v21: ПАРАМЕТРЫ, API, ДАННЫЕ ===== */
+const ind=ENG.ind,HT=ENG.HT;
+const EP=()=>ENG.mkP({rr2:num("rr")||3,atrStop:num("atrm")||1.5,slip:(num("slipbp")||3)/1e4,dep:num("dep")||1000,riskPct:num("risk")||1});
+const labSig=P=>[P.rr1,P.rr2,P.atrStop,P.atrCap,P.slip,P.feeTaker,P.feeMaker,P.fundRate,P.minPts,P.maxHold,P.partial,P.maxCostR,P.minRoom].join("|");
+const M={},INS={};
+const dec=t=>{const x=String(t||"");return x.includes(".")?x.split(".")[1].replace(/0+$/,"").length:0};
+const fx=(sym,v)=>v.toFixed(INS[sym]?dec(INS[sym].tick):4);
+const API={ok:0,err:0,last:0,lastErr:""};
+async function api(url,tries=3){
+ for(let k=0;k<tries;k++){
+  try{const r=await fetch(url);
+   if(r.status===429||r.status===403||r.status>=500){API.err++;API.lastErr="HTTP "+r.status;await sleep(900*(k+1));continue}
+   const j=await r.json();
+   if(j.retCode===0){API.ok++;API.last=Date.now();return j.result}
+   if(j.retCode===10006||j.retCode===10018){API.err++;API.lastErr="лимит запросов";await sleep(1500*(k+1));continue}
+   throw new Error("Bybit "+j.retCode+" "+j.retMsg)
+  }catch(e){API.err++;API.lastErr=String(e.message||e);if(k===tries-1)throw e;await sleep(500*(k+1))}}}
+const mkM=t=>({fund:+t.fundingRate||0,turn:+t.turnover24h||0,chg:(+t.price24hPcnt||0)*100,bid:+t.bid1Price||0,ask:+t.ask1Price||0,oi:+t.openInterestValue||0,nft:+t.nextFundingTime||0,ts:Date.now()});
+async function pollTickers(){
+ try{const r=await api("https://api.bybit.com/v5/market/tickers?category=linear");r.list.forEach(t=>{if(D[t.symbol])M[t.symbol]=mkM(t)})}catch(e){}
+ render();
+}
+
+/* ===== РИСК-МЕНЕДЖМЕНТ ===== */
+const utcDay0=()=>{const d=new Date();d.setUTCHours(0,0,0,0);return d.getTime()};
+const isClosed=z=>z.status!=="open"&&z.status!=="expired";
+const openCount=()=>signals.filter(z=>z.status==="open").length;
+const stopsToday=()=>signals.filter(z=>z.status==="stop"&&(z.te||z.t.getTime())>=utcDay0()).length;
+function riskState(){
+ const now=Date.now(),op=signals.filter(z=>z.status==="open"),cl=signals.filter(isClosed).sort((a,b)=>(b.te||0)-(a.te||0)),day0=utcDay0();
+ let dayR=0;cl.forEach(z=>{if((z.te||0)>=day0)dayR+=pnlNum(z).r});
+ let st=0;for(const z of cl){if(z.status==="stop")st++;else break}
+ const lastStop=st&&cl[0]?cl[0].te||0:0,pu=st>=3&&lastStop?lastStop+(num("pausemin")||240)*6e4:0,dep=num("dep")||1;
+ const notional=op.reduce((a,z)=>a+z.qty*z.entry,0),openRisk=op.reduce((a,z)=>a+(z.be?0:z.ru),0);
+ return{open:op.length,long:op.filter(z=>z.side==="LONG").length,short:op.filter(z=>z.side==="SHORT").length,dayR,stops:stopsToday(),streak:st,pauseUntil:pu>now?pu:0,exposure:notional/dep,openRisk,openRiskPct:openRisk/dep*100,dep}}
+function limitReason(sym,side,newNotional){
+ const s=riskState();
+ if(s.stops>=(num("stoplim")||4))return "дневной лимит стопов";
+ if(s.dayR<=-(num("dloss")||3))return "дневной лимит убытка "+(num("dloss")||3)+"R достигнут";
+ if(s.pauseUntil)return "пауза после серии из "+s.streak+" стопов подряд";
+ if(s.open>=(num("maxopen")||5))return "лимит одновременных позиций";
+ if((side==="LONG"?s.long:s.short)>=(num("maxside")||3))return "лимит коррелированной экспозиции: уже "+(side==="LONG"?s.long:s.short)+" позиций "+(side==="LONG"?"лонг":"шорт");
+ if(s.exposure+(newNotional||0)/s.dep>(num("maxexp")||3))return "общая открытая позиция превысит "+(num("maxexp")||3)+"× депозита";
+ return""}
+function limitMsg(){const s=riskState();
+ if(s.stops>=(num("stoplim")||4))return " ПАУЗА: достигнут дневной лимит стопов, новых сигналов не будет до завтра.";
+ if(s.dayR<=-(num("dloss")||3))return " ПАУЗА: дневной лимит убытка достигнут.";
+ if(s.pauseUntil)return " ПАУЗА после серии стопов до "+new Date(s.pauseUntil).toLocaleTimeString("ru-RU")+".";
+ if(s.open>=(num("maxopen")||5))return " Лимит открытых сигналов достигнут, новые появятся после закрытия текущих.";
+ return""}
+
+/* ===== СТАРШИЙ ТФ И BTC (только закрытые свечи) ===== */
+function trendAt(T,cs,t,ms){let lo=0,hi=cs.length-1,r=-1;while(lo<=hi){const m=(lo+hi)>>1;if(cs[m].t+ms<=t){r=m;lo=m+1}else hi=m-1}return r<0?0:T[r]}
+function tcache(sym,tf){const x=slot(sym,tf),n=x.c.length,l=n?x.c[n-1].t:0;if(!x.T||x.Tn!==n||x.Tl!==l){x.T=ENG.trendArr(x.c);x.Tn=n;x.Tl=l}return x.T}
+function liveGate(sym,tf,t){const e=t+tf*6e4,ht=ENG.HT[tf],h=slot(sym,ht).c,b=slot("BTCUSDT","60").c;
+ return{h:trendAt(tcache(sym,ht),h,e,ht*6e4),b:sym==="BTCUSDT"?0:trendAt(tcache("BTCUSDT","60"),b,e,3.6e6)}}
+
+/* ===== LAB: статус проверки стратегий ===== */
+const LAB={res:null,ts:0,sig:"",running:false,msg:"",err:"",progress:0};
+const labValid=()=>!!(LAB.res&&LAB.sig===labSig(EP()));
+const approvedMap=()=>labValid()?LAB.res.approved:{};
+function calibText(grade,tf,strat){
+ const c=LAB.res&&LAB.res.calib&&LAB.res.calib[grade];if(!c||!labValid())return"";
+ if(c.val.n<30)return "Вероятность не показывается: для класса "+grade+" в Lab мало сделок на валидации (n="+c.val.n+", нужно ≥ 30).";
+ const p=v=>Math.round(v*100)+"%";
+ return "Эмпирическая частота прибыльных сделок класса "+grade+" в Lab: валидация "+p(c.val.w/c.val.n)+" (ДИ 95% "+p(c.val.ci[0])+"–"+p(c.val.ci[1])+", n="+c.val.n+")"+(c.oos.n?"; OOS "+p(c.oos.w/c.oos.n)+" (n="+c.oos.n+")":"")+". Это историческая частота, а не гарантия."}
+
+/* ===== ОЦЕНКА СЕТАПА (живой режим). Те же функции движка, что и в бэктесте ===== */
+const FN=[],SCN=[],RADAR={};let NOREC=false;
+const rej=r=>{r=String(r).split(/[(:«]/)[0].trim();if(!NOREC){FN.push([Date.now(),r]);if(FN.length>4000)FN.splice(0,1500)}return null};
+function recordCand(c){
+ const k=c.sym+"|"+c.tf+"|"+c.strat+"|"+(c.barT||c.t.getTime()-c.t.getTime()%(c.tf*6e4));
+ if(cands.some(x=>x.k===k))return;
+ cands.unshift({k,sym:c.sym,tf:c.tf,strat:c.strat,side:c.side,pts:c.pts,grade:c.grade,t:c.t.getTime(),reasons:c.reasons||[],price:c.price||c.entry||0,approved:!!c.approved});
+ if(cands.length>400)cands.length=400;try{localStorage.setItem("cands1",JSON.stringify(cands))}catch(e){}}
+function radarCheck(sym,tf,cs,I){
+ const key=sym+"|"+tf,i=cs.length-1,mk=M[sym];let pd=null;
+ if(!mk||mk.turn>=(num("minvol")||0)*1e6){const g=liveGate(sym,tf,cs[i].t);
+  for(const L of [true,false]){const c=ENG.smcCtx(I,cs,i,L);if(c&&(L?g.h===1&&g.b!==-1:g.h===-1&&g.b!==1)){pd={side:L?"LONG":"SHORT",retr:c.retr,z:c.z};break}}}
+ if(pd)RADAR[key]={sym,tf,exp:Date.now()+(+tf)*6e4*3,...pd};else delete RADAR[key]}
+
+function evaluate(sym,tf,ov){
+ const x=slot(sym,tf),cs=ov?ov.cs:x.c,P=EP();if(cs.length<P.warm+5)return null;
+ if(!NOREC){SCN.push(Date.now());if(SCN.length>8000)SCN.splice(0,2500)}
+ const I=ov?ov.I:(x.I||(x.I=ind(cs))),i=cs.length-1,last=cs[i],tm=tf*6e4;
+ if(!ov&&Date.now()-(last.t+tm)>2*tm)return rej("устаревшие данные");
+ const g=liveGate(sym,tf,last.t),ctx={htf:[],btc:[]};ctx.htf[i]=g.h;ctx.btc[i]=g.b;
+ const sel=$("lgc").value,names=sel==="auto"?ENG.STRATS:[sel],memo={},ok=[],blocked=[];
+ for(const nm of names){const e=ENG.evalBar(nm,I,cs,i,P,ctx,memo);if(e.none)continue;if(e.ok)ok.push({nm,e});else blocked.push({nm,e})}
+ if(!ok.length){if(!NOREC){if(blocked.length)rej(blocked[0].e.reason);if(!ov)radarCheck(sym,tf,cs,I)}return null}
+ const ap=approvedMap(),need=$("btgate").checked,minG=$("cmin").value||"B";
+ ok.sort((a,b)=>((ap[tf+"|"+b.nm]?1:0)-(ap[tf+"|"+a.nm]?1:0))||(b.e.pts-a.e.pts));
+ const top=ok[0],e=top.e,nm=top.nm,c=e.cand,L=c.side==="LONG",p=cs[i].c,isAp=!!ap[tf+"|"+nm],reasons=[],mk=M[sym];
+ if(e.grade==="NO TRADE")reasons.push("мало подтверждений ("+e.pts+" из 10, нужно ≥ "+P.minPts+")");
+ if(need&&!isAp)reasons.push(!LAB.res?"Lab ещё не выполнен: преимущество стратегии не проверено":!labValid()?"параметры изменены после Lab: перезапусти проверку":"нет доказанного преимущества: «"+ENG.SNAME[nm]+"» на "+TFS[tf]+" не прошла отбор в Lab");
+ if(e.grade!=="NO TRADE"&&ENG.gradeRank(e.grade)<ENG.gradeRank(minG))reasons.push("класс "+e.grade+" ниже выбранного ("+minG+")");
+ if(mk&&mk.turn<(num("minvol")||0)*1e6)reasons.push("малый оборот монеты");
+ const sp=e.risk/p;
+ if(mk&&mk.bid&&mk.ask){const spr=(mk.ask-mk.bid)/((mk.ask+mk.bid)/2);if(spr>.15*sp)reasons.push("спред "+(spr*100).toFixed(3)+"% слишком широк относительно стопа "+(sp*100).toFixed(2)+"%")}
+ if($("blk").checked&&marketState().level==="red")reasons.push("рынок в красной зоне");
+ if(signals.some(z=>z.status==="open"&&z.sym===sym&&z.side===c.side))reasons.push("по монете уже есть открытый сигнал");
+ if(signals.some(z=>z.sym===sym&&z.status==="stop"&&Date.now()-(z.te||z.t.getTime())<4*36e5))reasons.push("пауза 4 часа после стопа по монете");
+ const I2=INS[sym],tk=I2?+I2.tick:0,rnd=v=>tk?Math.round(v/tk)*tk:v;
+ const entry=L?p*(1+P.slip):p*(1-P.slip),sl=rnd(L?entry-e.risk:entry+e.risk),risk=Math.abs(entry-sl);
+ const sz=ENG.sizePosition({equity:num("dep"),riskPct:num("risk")||1,entry,sl,maxLev:num("mlev")||10,step:I2?+I2.step:0,minQty:I2?I2.min:0,minNotional:I2?I2.minNot:0,side:c.side,feeTaker:P.feeTaker,slip:P.slip});
+ if(!sz.ok)reasons.push(sz.why);else{const lr=limitReason(sym,c.side,sz.notional);if(lr)reasons.push(lr)}
+ const base={sym,tf,strat:nm,side:c.side,pts:e.pts,grade:e.grade,t:new Date(),price:p,barT:last.t,approved:isAp};
+ if(reasons.length){if(!ov&&!NOREC)recordCand({...base,reasons});return rej(reasons[0])}
+ const tp1=rnd(L?entry+P.rr1*risk:entry-P.rr1*risk),tp2=rnd(L?entry+P.rr2*risk:entry-P.rr2*risk);
+ const fund=mk?mk.fund:0,fw=L?fund>.0005:fund<-.0005,warn=[];
+ if(e.room<2.5&&isFinite(e.room))warn.push("до ближайшего уровня только "+e.room.toFixed(1)+"R");
+ if(fw)warn.push("funding против позиции");
+ if(fundingSoon())warn.push("скоро funding");
+ if(sp<.004)warn.push("узкий стоп: комиссии заметны ("+e.costR.toFixed(2)+"R)");
+ if(mk&&mk.turn<10e6)warn.push("низкая ликвидность");
+ if(!isAp)warn.push("преимущество стратегии НЕ доказано (проверка Lab отключена)");
+ const mkt0=marketState();if(mkt0.level==="yellow"&&mkt0.items[0])warn.push("рынок: "+mkt0.items[0].txt);
+ const ht=ENG.HT[tf],sd=L?"восходящий":"нисходящий";
+ const cancel=["закрытие свечи "+TFS[tf]+" за стопом "+fx(sym,sl)+" — идея отменена","цена ушла дальше 0,3R от входа ("+fx(sym,entry)+") до исполнения — вход упущен, не гонись","BTC (1ч) развернулся против сделки","тренд старшего ТФ ("+TFS[ht]+") сменился: "+sd+" больше не подтверждён","без ТП1 за "+P.maxHold+" свечей — закрыть по рынку (стоп по времени)"];
+ return{sym,tf,side:c.side,strat:nm,grade:e.grade,pts:e.pts,checks:e.checks,entry,price0:p,sl,tp1,tp:tp2,rr:P.rr2,costR:e.costR,lev:sz.lev,qty:sz.qty,margin:sz.margin,ru:sz.riskU,sp:sp*100,why:[ENG.SNAME[nm],...c.tags],fib:c.fib,liq:sz.liq,fund,fw,risk,small:false,conf:e.grade,warn,cancel,qtyS:sz.qty.toFixed(I2?dec(I2.step):4),t:new Date(),status:"open",approved:isAp,barT:last.t,room:e.room,calib:calibText(e.grade)};
+}
+/* деривативы (OI, funding) не проверены бэктестом: могут только ПОНИЗИТЬ класс, но не повысить */
+async function enrichDeriv(s){
+ s.deriv=[];let down=0;const mk=M[s.sym],L=s.side==="LONG";
+ if(mk){if(L?mk.fund>.0005:mk.fund<-.0005){down++;s.deriv.push({ok:false,txt:"funding "+(mk.fund*100).toFixed(3)+"% против позиции"})}else s.deriv.push({ok:true,txt:"funding "+(mk.fund*100).toFixed(3)+"% не против позиции"});
+  if(mk.bid&&mk.ask)s.deriv.push({ok:true,txt:"спред "+(((mk.ask-mk.bid)/((mk.ask+mk.bid)/2))*100).toFixed(3)+"%"})}
+ try{const r=await api(`https://api.bybit.com/v5/market/open-interest?category=linear&symbol=${s.sym}&intervalTime=15min&limit=9`,2);
+  const o=r.list.map(q=>+q.openInterest).reverse();
+  if(o.length>=6){const d=(o[o.length-1]/o[0]-1)*100,cs=slot(s.sym,s.tf).c,k=Math.max(1,Math.round(120/(+s.tf))),pc=cs.length>k?(cs[cs.length-1].c/cs[cs.length-1-k].c-1)*100:0;
+   if(L?(pc>0&&d<-2):(pc<0&&d<-2)){down++;s.deriv.push({ok:false,txt:"ΔOI за ~2ч "+d.toFixed(1)+"% при движении цены "+pc.toFixed(1)+"%: движение за счёт закрытия позиций, а не новых входов"})}
+   else s.deriv.push({ok:d>=0?true:null,txt:"ΔOI за ~2ч "+(d>=0?"+":"")+d.toFixed(1)+"%"})}
+ }catch(e){s.deriv.push({ok:null,txt:"OI недоступен ("+(API.lastErr||"ошибка API")+")"})}
+ s.deriv.push({ok:null,txt:"CVD не считается: у Bybit нет разбивки свечей по агрессору (нужен поток сделок)"});
+ if(down){const gi=Math.max(0,ENG.gradeRank(s.grade)-1);s.gradeBefore=s.grade;s.grade=ENG.GRADES[gi];s.conf=s.grade}
+}
+const PENDING=new Set();
+async function emitSignal(q,tag){
+ const k=q.sym+"|"+q.tf+"|"+q.side;if(PENDING.has(k))return;PENDING.add(k);
+ try{await enrichDeriv(q)}catch(e){}finally{PENDING.delete(k)}
+ const why=[];
+ if(q.grade==="NO TRADE"||ENG.gradeRank(q.grade)<ENG.gradeRank($("cmin").value||"B"))why.push("понижен по деривативам до «"+q.grade+"»: "+q.deriv.filter(d=>d.ok===false).map(d=>d.txt).join("; "));
+ else{const lr=limitReason(q.sym,q.side,q.qty*q.entry);if(lr)why.push(lr);if(signals.some(z=>z.status==="open"&&z.sym===q.sym&&z.side===q.side))why.push("по монете уже есть открытый сигнал")}
+ if(why.length){recordCand({...q,reasons:why});return}
+ if(tag)q.why.push(tag);onSignal(q)}
+
+/* ===== ЖУРНАЛ, PnL, СВЕРКА ===== */
+function saveSig(){try{localStorage.setItem("sig4",JSON.stringify(signals))}catch(e){}}
+function closeSig(s,status,exit){s.status=status;s.exit=exit;s.te=Date.now();saveSig()}
+function pnlNum(s){
+ const P=EP(),L=s.side=="LONG",d=L?1:-1,open=s.exit===undefined,px=open?(D[s.sym]?D[s.sym].price:s.entry):s.exit;
+ const q1=s.p1?s.qty*P.partial:0,rem=s.qty-q1,r1=s.tp1?Math.abs(s.tp1-s.entry):s.risk,mk=s.status==="take";
+ const pxe=mk?px:px*(1-d*P.slip),g=q1*r1+rem*(px-s.entry)*d,gg=q1*r1+rem*(pxe-s.entry)*d;
+ const fee=s.qty*s.entry*P.feeTaker+q1*(s.tp1||s.entry)*P.feeMaker+rem*pxe*(mk?P.feeMaker:P.feeTaker);
+ const t1=open?Date.now():(s.te||Date.now()),nF=Math.max(0,Math.floor(t1/28800000)-Math.floor(s.t.getTime()/28800000)),fund=(s.fund||0)*d*s.qty*s.entry*nF;
+ const n=gg-fee-fund;return{g,n,roe:s.margin?n/s.margin*100:0,r:s.ru?n/s.ru:0}}
+function reconcile(){
+ let ch=false;const P=EP();
+ signals.forEach(s=>{if(s.status!=="open"||!s.tp1)return;
+  const cs=slot(s.sym,s.tf).c,tm=s.tf*6e4,t0=s.t.getTime();let i=-1;
+  for(let k=cs.length-1;k>=0;k--){if(cs[k].t+tm<=t0+1000){i=k;break}}
+  if(i<0||i>=cs.length-1)return;
+  const sim=ENG.simTrade(cs,i,s.side,s.risk,tm,P,{fill:s.entry,sl:s.sl,tp1:s.tp1,tp2:s.tp});if(!sim)return;
+  if(sim.p1&&!s.p1){s.p1=true;s.be=true;ch=true}
+  if(sim.status==="take"||sim.status==="stop"||sim.status==="be"){s.status=sim.status;s.exit=sim.status==="take"?s.tp:sim.status==="stop"?s.sl:s.entry;s.te=cs[sim.j].t+tm;ch=true}
+  else if(i+P.maxHold<=cs.length-1){s.status="time";s.exit=sim.exitPx;s.te=cs[sim.j].t+tm;ch=true}});
+ if(ch){saveSig();toast("Сделки, закрытые пока приложение было выключено, обновлены")}}
+/* проверка по закрытой свече (ловит тени, пропущенные между тиками); только свечи ПОСЛЕ входа */
+function barCheck(s,b){
+ if(s.status!=="open"||b.t<s.t.getTime()-1000)return;
+ const L=s.side=="LONG",st=s.be?s.entry:s.sl;
+ if(L?b.l<=st:b.h>=st){closeSig(s,s.be?"be":"stop",st);return}
+ if(!s.p1&&(L?b.h>=s.tp1:b.l<=s.tp1)){s.be=true;s.p1=true;saveSig();beNotify(s)}
+ if(L?b.h>=s.tp:b.l<=s.tp)closeSig(s,"take",s.tp)}
+const berr=()=>1;
+function journalTrades(){return signals.filter(isClosed).slice().sort((a,b)=>(a.te||a.t.getTime())-(b.te||b.t.getTime())).map(s=>{const p=pnlNum(s),te=s.te||s.t.getTime();return{R:p.r,pnl:p.n,t:s.t.getTime(),te,bars:Math.max(1,Math.round((te-s.t.getTime())/((+s.tf||15)*6e4))),min:(te-s.t.getTime())/6e4,sym:s.sym,tf:s.tf,strat:s.strat||"v20",side:s.side,status:s.status,grade:s.grade||"—"}})}
+
+/* ===== перенесено из v20 без изменений (графики, звук, модалки, рынок, радар) ===== */
+function copyText(txt, msg){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(()=>toast(msg||"Скопировано")).catch(()=>fallbackCopy(txt,msg));
+    }else fallbackCopy(txt,msg);
+  }catch(e){fallbackCopy(txt,msg)}
+}
+function fallbackCopy(txt,msg){
+  try{
+    const ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+    toast(msg||"Скопировано");
+  }catch(e){toast(txt)}
+}
+function fmt(x){return x<1?x.toPrecision(5):x<100?x.toFixed(3):x.toLocaleString("ru-RU",{maximumFractionDigits:2})}
+function beep(k){if(!sound||!actx)return;try{if(actx.state==="suspended")actx.resume();
+ const seq={sig:[880,1175],be:[660,880],take:[784,988,1319],stop:[392,294]}[k||"sig"];
+ seq.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+i*.16;o.type="sine";o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.2,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.15);o.start(t);o.stop(t+.16)});
+ if(navigator.vibrate)navigator.vibrate(k==="stop"?[200]:[120,60,120])}catch(e){}}
+const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open("scalp5",1);r.onupgradeneeded=()=>r.result.createObjectStore("c");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function cacheLoad(){try{const db=await idb();return await new Promise(res=>{const out={},q=db.transaction("c").objectStore("c").openCursor();q.onsuccess=e=>{const c=e.target.result;if(c){out[c.key]=c.value;c.continue()}else res(out)};q.onerror=()=>res(out)})}catch(e){return{}}}
+async function cacheSave(){try{const db=await idb(),st=db.transaction("c","readwrite").objectStore("c");
+ for(const sym of COINS.slice(0,120)){if(!D[sym])continue;for(const tf in D[sym].tf){const c=D[sym].tf[tf].c;if(c.length<50)continue;const a=new Float64Array(c.length*6);c.forEach((x,i)=>a.set([x.t,x.o,x.h,x.l,x.c,x.v],i*6));st.put(a,sym+"|"+tf)}}}catch(e){}}
+function openBybit(sym){
+ copyText(sym, sym+" скопирован");
+ let left=false;const h=()=>{if(document.hidden)left=true};document.addEventListener("visibilitychange",h);
+ window.open("https://www.bybit.com/trade/usdt/"+sym,"_blank");
+ setTimeout(()=>document.removeEventListener("visibilitychange",h),1500);
+}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),4500)}
+const sg=v=>(v>=0?"+":"")+v.toFixed(2);
+function pnlHtml(s){const p=pnlNum(s);
+ return `<div class="pnl ${p.n>=0?"up":"dn"}"><div><div class="lblp">${s.exit!==undefined?"Итог сделки":"Текущий PnL"}</div><div class="big">${sg(p.n)} USDT</div></div><div class="sub"><span>ROE <b>${sg(p.roe)}%</b></span><span><b>${sg(p.r)}R</b></span><span>до ком. ${sg(p.g)}$</span></div></div>`}
+function beNotify(s){beep("be");saveSig();toast(`${name(s.sym)}: ${s.p1?"закрой 50% и стоп на вход":"передвинь стоп в безубыток"}`);say(`${vname(s.sym)}: ${s.p1?"закрой пятьдесят процентов позиции и передвинь стоп на вход":"передвинь стоп в безубыток"}`);if(sound&&window.Notification&&Notification.permission==="granted")new Notification(`Стоп в безубыток: ${name(s.sym)} ${TFS[s.tf]}`,{body:`${s.p1?`Цена прошла +1R. Закрой 50% позиции и передвинь стоп на вход ${fmt(s.entry)}`:`Цена прошла +${berr()}R. Передвинь стоп на вход ${fmt(s.entry)}`}`})}
+function lateHtml(s){if(s.status!=="open")return"";
+ const pr=D[s.sym].price,d=(s.side=="LONG"?1:-1)*(pr-s.entry)/s.risk,age=Math.max(0,Math.round((Date.now()-s.t.getTime())/60000)),
+ a=`<span class="age">${age<60?age+" мин":Math.round(age/60)+" ч"} назад</span>`;
+ if(!s.be&&d>=.35)return`<div class="late"><span>⏳ Вход упущен: цена ушла на +${d.toFixed(2)}R</span>${a}</div>`;
+ if(d<=-.6)return`<div class="late"><span>⚠ Цена около стопа (${d.toFixed(2)}R)</span>${a}</div>`;
+ return`<div class="okk"><span>✔ Актуальная зона входа (${sg(d)}R)</span>${a}</div>`}
+function pushState(){if(!/^(localhost|127\.0\.0\.1)$/.test(location.hostname))return;try{const o={};["cfg5","ui5","sig4"].forEach(k=>o[k]=localStorage.getItem(k));navigator.sendBeacon("/api/state",new Blob([JSON.stringify(o)],{type:"text/plain"}))}catch(e){}}
+function checkAlerts(sym){if(!alerts.length)return;const px=D[sym].price;let ch=false;
+ alerts=alerts.filter(a=>{if(a.sym!==sym)return true;const hit=a.dir==="up"?px>=a.price:px<=a.price;
+  if(hit){ch=true;beep("sig");toast(`🔔 ${name(sym)} достиг ${a.price}`);if(sound&&window.Notification&&Notification.permission==="granted")new Notification(`Алерт ${name(sym)}`,{body:`Цена ${px}`});return false}return true});
+ if(ch){ui();drawChart()}}
+let cq=0;const schedChart=()=>{if(cq)return;cq=setTimeout(()=>{cq=0;drawChart()},250)};
+function drawChart(){
+ const box=$("chartbox");
+ if(cur==="ALL"||cur==="FAV"||!D[cur]){box.style.display="none";return}
+ box.style.display="block";
+ const tfl=[...loaded].filter(t=>TFS[t]).sort((a,b)=>a-b);
+ if(!tfl.includes(ctf))ctf=tfl.includes([...watch][0])?[...watch][0]:(tfl[0]||"");
+ const key=tfl.join()+"|"+ctf+"|"+cur;
+ if(box.dataset.k!==key){box.dataset.k=key;$("chh").innerHTML=tfl.map(t=>`<button class="${t===ctf?"on":""}" data-ct="${t}">${TFS[t]}</button>`).join("")+`<span class="cl">${name(cur)}</span><span class="ch-legend"><span class="l21">EMA21</span><span class="l50">EMA50</span><span class="l200">EMA200</span></span><span class="ci" id="ci"></span>`}
+ if(!ctf)return;
+ const cv=$("cv"),x=slot(cur,ctf),all=x.c;if(all.length<30)return;
+ const dpr=window.devicePixelRatio||1,W=cv.clientWidth||600,H=cv.clientHeight||300;
+ if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+ const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+ const N=Math.max(40,Math.min(140,Math.floor((W-64)/7))),I=x.I||(x.I=ind(all)),off=all.length-N;
+ const cs=all.slice(-N).map((c,i)=>({...c,i:i+off}));
+ const lv=x.live;if(lv&&lv.t>all[all.length-1].t)cs.push({...lv,i:all.length});
+ const sg2=signals.find(z=>z.sym===cur&&z.status==="open"),al=alerts.filter(a=>a.sym===cur);
+ let lo=Math.min(...cs.map(c=>c.l)),hi=Math.max(...cs.map(c=>c.h));
+ const lv2=[];if(sg2){lv2.push(sg2.sl,sg2.tp,sg2.entry);if(sg2.tp1)lv2.push(sg2.tp1);if(sg2.fib)lv2.push(...sg2.fib)}al.forEach(a=>lv2.push(a.price));
+ lv2.forEach(v=>{if(v>lo*.97&&v<hi*1.03){lo=Math.min(lo,v);hi=Math.max(hi,v)}});
+ const pad=(hi-lo)*.06||1e-9;lo-=pad;hi+=pad;
+ const PW=W-62,PH=H*.8,VH=H*.15,step=PW/cs.length,bw=Math.max(2,step*.64),vmax=Math.max(...cs.map(c=>c.v))||1;
+ const y=v=>PH-(v-lo)/(hi-lo)*(PH-8)+4,xx=k=>k*step+step/2;
+ g.font="11px Inter, system-ui";g.textAlign="left";g.fillStyle="#8b9bbd";g.strokeStyle="rgba(139,155,189,.11)";g.lineWidth=1;
+ for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4,yy=y(v);g.beginPath();g.moveTo(0,yy);g.lineTo(PW,yy);g.stroke();g.fillText(fmt(v),PW+5,yy+4)}
+ if(sg2&&sg2.fib){g.fillStyle="rgba(245,158,11,.15)";const a=y(sg2.fib[0]),b=y(sg2.fib[1]);g.fillRect(0,Math.min(a,b),PW,Math.abs(a-b))}
+ const avgV=cs.reduce((q,c)=>q+c.v,0)/cs.length;
+ cs.forEach((c,k)=>{const sp=c.v>1.8*avgV,up=c.c>=c.o;g.fillStyle=up?(sp?"rgba(16,185,129,.82)":"rgba(16,185,129,.26)"):(sp?"rgba(244,63,94,.82)":"rgba(244,63,94,.26)");const h=c.v/vmax*VH;g.fillRect(xx(k)-bw/2,H-h,bw,h)});
+ [[I.e21,"#f5c451"],[I.e50,"#7c9cff"],[I.e200,"#c58bff"]].forEach(([arr,col])=>{g.strokeStyle=col;g.lineWidth=1.5;g.beginPath();let st=false;
+  cs.forEach((c,k)=>{if(c.i>=all.length)return;const v=arr[c.i];if(v==null)return;const px=xx(k),py=y(v);if(!st){g.moveTo(px,py);st=true}else g.lineTo(px,py)});g.stroke()});
+ cs.forEach((c,k)=>{const up=c.c>=c.o,col=up?"#10b981":"#f43f5e",cx=xx(k);g.strokeStyle=col;g.fillStyle=col;g.lineWidth=1;
+  g.beginPath();g.moveTo(cx,y(c.h));g.lineTo(cx,y(c.l));g.stroke();const t=y(Math.max(c.o,c.c)),b=y(Math.min(c.o,c.c));g.fillRect(cx-bw/2,t,bw,Math.max(1,b-t))});
+ g.fillStyle="rgba(255,255,255,.55)";
+ cs.forEach((c,k)=>{if(c.i>=all.length)return;if(I.ph[c.i]){g.beginPath();g.arc(xx(k),y(c.h)-6,2.2,0,6.3);g.fill()}if(I.pl[c.i]){g.beginPath();g.arc(xx(k),y(c.l)+6,2.2,0,6.3);g.fill()}});
+ const line=(v,col,label)=>{if(v<lo||v>hi)return;const yy=y(v);g.strokeStyle=col;g.setLineDash([5,4]);g.lineWidth=1.2;g.beginPath();g.moveTo(0,yy);g.lineTo(PW,yy);g.stroke();g.setLineDash([]);
+  g.fillStyle=col;g.fillRect(PW,yy-8,62,16);g.fillStyle="#060b14";g.textAlign="center";g.fillText(label,PW+31,yy+4);g.textAlign="left"};
+ if(sg2){line(sg2.entry,"#ffffff","Вход");line(sg2.sl,"#f43f5e","Стоп");if(sg2.tp1)line(sg2.tp1,"#f59e0b","ТП1 +1R");line(sg2.tp,"#10b981","Тейк")}
+ al.forEach(a=>line(a.price,"#c58bff","🔔"));
+ const lc=cs[cs.length-1];line(lc.c,lc.c>=lc.o?"#10b981":"#f43f5e",fmt(lc.c));
+ if(hov>=0&&hov<cs.length){const c=cs[hov],cx=xx(hov);g.strokeStyle="rgba(255,255,255,.35)";g.lineWidth=1;g.beginPath();g.moveTo(cx,0);g.lineTo(cx,H);g.stroke();
+  const chgP=((c.c-c.o)/c.o*100).toFixed(2),ri=c.i<all.length?I.r[c.i]:I.r[all.length-1];
+  $("ci").textContent=`${new Date(c.t).toLocaleString("ru-RU",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"})}  O:${fmt(c.o)} H:${fmt(c.h)} L:${fmt(c.l)} C:${fmt(c.c)} (${chgP>=0?"+":""}${chgP}%) RSI:${(ri||50).toFixed(0)}`}
+ else if($("ci")){const n=all.length-1,ax=I.x[n]||0,ri=I.r[n]||50;$("ci").textContent=`${I.e50[n]>I.e200[n]?"↗ Бычий":"↘ Медвежий"} · RSI ${ri.toFixed(0)} · ADX ${ax.toFixed(0)} (${ax>=25?"сильный тренд":ax>=20?"тренд":"флэт"})`}
+ cv._n=cs.length;cv._step=step;
+}
+function applyTheme(){document.documentElement.dataset.theme=$("thm").value}
+function fundingSoon(){const d=new Date(),m=(d.getUTCHours()*60+d.getUTCMinutes())%480;return m>=470||m<=5}
+function updateSession(){
+ const e=$("sess");if(!e)return;
+ const h=new Date().getUTCHours();
+ let s="Азиатская сессия";
+ if(h>=13&&h<16)s="🔥 Пик: Лондон + Нью-Йорк";
+ else if(h>=7&&h<16)s="Европейская сессия (Лондон)";
+ else if(h>=16&&h<21)s="Американская сессия (NY)";
+ e.querySelector("span").textContent=s;
+}
+let MSc=null,HPc=null;
+function hourProfile(){
+ if(HPc&&Date.now()-HPc.t<6e5)return HPc.v;
+ const c=slot("BTCUSDT","60").c;if(c.length<200)return null;
+ const sv=new Array(24).fill(0),n=new Array(24).fill(0);
+ c.forEach(k=>{const h=new Date(k.t).getHours();sv[h]+=k.v;n[h]++});
+ const av=sv.map((v,h)=>n[h]?v/n[h]:0),m=av.reduce((a,b)=>a+b,0)/24||1,act=av.map(v=>v/m);
+ const order=act.map((v,h)=>[v,h]).sort((a,b)=>b[0]-a[0]).slice(0,4).map(x=>x[1]).sort((a,b)=>a-b);
+ const cl=signals.filter(s=>s.status!=="open"),wr=new Array(24).fill(null);
+ if(cl.length>=10){const w=new Array(24).fill(0),t=new Array(24).fill(0);cl.forEach(s=>{const h=s.t.getHours();t[h]++;if(pnlNum(s).n>0)w[h]++});t.forEach((q,h)=>{if(q>=3)wr[h]=w[h]/q})}
+ HPc={t:Date.now(),v:{act,order,wr}};return HPc.v}
+function marketState(){
+ if(MSc&&Date.now()-MSc.t<15e3)return MSc.v;
+ const items=[],add=(lv,txt)=>items.push({lv,txt});
+ const tf=slot("BTCUSDT","15").c.length>250?"15":"60",x=slot("BTCUSDT",tf),c=x.c;
+ if(c.length>250){
+  const I=x.I||(x.I=ind(c)),n=c.length-1,a=I.a[n],al=I.a.slice(n-100,n).sort((p,q)=>p-q),med=al[50]||a,vr=a/(med||1);
+  if(vr>1.8)add("r","BTC очень волатилен (ATR в "+vr.toFixed(1)+" раза выше обычного): стопы выбивает чаще");else if(vr>1.4)add("y","BTC волатильнее обычного");
+  const mv=Math.abs(I.c[n]-I.c[n-3])/a;
+  if(mv>3.5)add("r","BTC резко двинулся за последние свечи: подожди 15–30 минут");else if(mv>2.5)add("y","BTC быстро движется");
+  const lv=x.live;if(lv&&lv.t>c[n].t&&(lv.h-lv.l)>2.5*a)add("r","идёт резкая свеча BTC: лучше дождаться её закрытия");
+  const s6=slot("BTCUSDT","60");if(s6.c.length>250){const I6=s6.I||(s6.I=ind(s6.c));if(I6.x[s6.c.length-1]<15)add("y","BTC во флэте (ADX ниже 15): трендовые сигналы слабее")}
+ }else add("y","нет данных по BTC для оценки рынка");
+ const hp=hourProfile();if(hp){const f=hp.act[new Date().getHours()];if(f<.55)add("y","тихие часы: объём сейчас "+Math.round(f*100)+"% от среднего")}
+ if(fundingSoon())add("y","рядом время фандинга (00:00, 08:00, 16:00 UTC): возможны всплески");
+ let st=0;for(const q of signals.filter(z=>z.status!=="open")){if(q.status==="stop")st++;else break}
+ if(st>=3)add("r","серия из "+st+" стопов подряд: сделай паузу и проверь настройки");else if(st===2)add("y","два стопа подряд: будь осторожнее");
+ if(stopsToday()>=(num("stoplim")||4))add("r","достигнут дневной лимит стопов");else if(openCount()>=(num("maxopen")||5))add("y","достигнут лимит открытых сделок");
+ items.sort((a,b)=>(a.lv==="r"?0:1)-(b.lv==="r"?0:1));
+ const level=items.some(i=>i.lv==="r")?"red":items.some(i=>i.lv==="y")?"yellow":"green";
+ MSc={t:Date.now(),v:{level,items}};return MSc.v}
+function drawMkt(){
+ updateSession();
+ const m=marketState(),e=$("mkt");if(!e)return;
+ const cls=m.level==="red"?"r":m.level==="yellow"?"y":"g";
+ const title=m.level==="red"?"Лучше не заходить в сделки сейчас":m.level==="yellow"?"Будь осторожнее: условия не идеальные":"Условия хорошие: можно искать сделки";
+ e.className="mkt "+cls;
+ e.innerHTML=`<div class="mt"><span class="mi">${m.level==="red"?"⛔":m.level==="yellow"?"⚠️":"✅"}</span><b>${title}</b></div>`+
+  (m.items.length?`<ul>${m.items.map(i=>`<li>${i.txt}</li>`).join("")}</ul>`:`<div class="ms">Волатильность и объёмы в норме, резких движений нет.</div>`)+
+  ($("blk").checked&&m.level==="red"?`<div class="ms">Новые сигналы временно не показываются (отключается в настройках).</div>`:"");
+ const hp=hourProfile(),b=$("hrb");
+ if(!hp){b.innerHTML=`<div class="ms">Нужна история BTC, подожди загрузки.</div>`;return}
+ const nh=new Date().getHours(),fh=h=>String(h).padStart(2,"0")+":00",cur2=hp.act[nh];
+ const best=hp.wr.map((v,h)=>[v,h]).filter(q=>q[0]!==null).sort((a,b)=>b[0]-a[0]).slice(0,3);
+ b.innerHTML=`<div class="hm">${hp.act.map((v,h)=>`<div class="hc${h===nh?" now":""}" style="--a:${Math.min(1,v/1.8).toFixed(2)}" title="${fh(h)}: объём ${Math.round(v*100)}% от среднего"><i>${h%6===0?h:""}</i></div>`).join("")}</div>
+ <div class="ms">Самые активные часы (ваше время): <b>${hp.order.map(fh).join(", ")}</b>. Сейчас ${fh(nh)}: объём ${Math.round(cur2*100)}% от среднего ${cur2>=1?"— хорошее время":cur2<.55?"— тихо, лучше подождать":"— средне"}.</div>`+
+ (best.length?`<div class="ms">По вашему журналу лучше всего: ${best.map(q=>fh(q[1])+" ("+Math.round(q[0]*100)+"%)").join(", ")}</div>`:"")}
+function drawRadar(){const e=$("rdb");if(!e)return;const now=Date.now();
+ const L=Object.values(RADAR).filter(r=>now<r.exp).sort((a,b)=>Math.abs(a.retr-.7)-Math.abs(b.retr-.7)).slice(0,12);
+ if($("rdcnt"))$("rdcnt").textContent=L.length;
+ e.innerHTML=L.length?L.map(r=>`<div class="rd" data-rd="${r.sym}"><b class="${r.side=="LONG"?"up":"dn"}">${r.side=="LONG"?"▲":"▼"} ${name(r.sym)}</b><span>${TFS[r.tf]}</span><span>откат ${Math.round(r.retr*100)}% импульса, зона фибо ${fmt(Math.min(...r.z))}–${fmt(Math.max(...r.z))}</span><em>ждём подтверждающую свечу</em></div>`).join(""):
+ `<div class="ms" style="margin-top:6px">Сейчас таких нет. Радар показывает монеты, где уже был слом структуры и цена откатывается к зоне фибо: сигнал появится после подтверждающей свечи. Нажми на строку, чтобы открыть монету.</div>`}
+const PRE={},SAID={},OPEN=new Set();let preI=0;
+const VN={BTC:"биткоин",ETH:"эфир",SOL:"солана",XRP:"рипл",DOGE:"доджкоин",BNB:"би эн би",TON:"тон",LINK:"линк"};
+const vname=sym=>{const n=name(sym).replace("1000","");return VN[n]||n};
+function say(t){if(!$("vox").checked||!window.speechSynthesis)return;try{const u=new SpeechSynthesisUtterance(t);u.lang="ru-RU";u.rate=1.05;speechSynthesis.speak(u)}catch(e){}}
+function preScan(){
+ if(!watch.size||!COINS.length)return;
+ const prio=[...new Set([...fav,...Object.values(RADAR).map(r=>r.sym),...COINS.slice(0,80)])].filter(q=>D[q]),jobs=[];
+ prio.forEach(q=>[...watch].forEach(tf=>jobs.push([q,tf])));
+ const now=Date.now();let done=0;
+ for(let n=0;n<jobs.length&&done<30;n++){const[sym,tf]=jobs[(preI+n)%jobs.length],x=slot(sym,tf),cs=x.c,lv=x.live,tm=(+tf)*6e4,key=sym+"|"+tf;
+  if(cs.length<210||!lv||lv.t<=cs[cs.length-1].t||now-lv.t<tm*.8||now-lv.t>=tm){delete PRE[key];continue}
+  done++;NOREC=true;let q=null;try{const c2=cs.concat([lv]);q=evaluate(sym,tf,{cs:c2,I:ind(c2)})}catch(e){}finally{NOREC=false}
+  if(q){PRE[key]={s:q,close:lv.t+tm};const k2=key+lv.t;if(!SAID[k2]){SAID[k2]=1;say(`Через ${Math.max(1,Math.round((lv.t+tm-now)/1000))} секунд возможен сигнал. ${q.side=="LONG"?"Лонг":"Шорт"} ${vname(sym)}`)}}else delete PRE[key]}
+ preI=(preI+done+1)%Math.max(1,jobs.length)}
+function drawPre(){const e=$("pre");if(!e)return;const now=Date.now();
+ const L=Object.values(PRE).filter(p=>p.close>now).sort((a,b)=>a.close-b.close);
+ e.innerHTML=L.length?`<div class="mkt y"><div class="mt"><span class="mi">⏱</span><b>Предсигналы: условия уже выполняются</b></div>`+L.slice(0,6).map(p=>{const q=p.s,sec=Math.max(0,Math.round((p.close-now)/1000));
+  return `<div class="rd" data-rd="${q.sym}"><b class="${q.side=="LONG"?"up":"dn"}">${q.side=="LONG"?"▲ Лонг":"▼ Шорт"} ${name(q.sym)}</b><span>${TFS[q.tf]}</span><span>вход ≈ ${fx(q.sym,q.entry)}, стоп ${fx(q.sym,q.sl)}, тейк ${fx(q.sym,q.tp)}</span><em>закрытие свечи через ${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}</em></div>`}).join("")+`<div class="ms">Это ещё не сигнал: он подтвердится, только если условия сохранятся к закрытию свечи.</div></div>`:""}
+function drawMap(){const e=$("mpb");if(!e||!$("mpd").open)return;
+ e.innerHTML=COINS.slice(0,60).filter(q=>M[q]).map((q,i)=>{const c=M[q].chg,a=Math.min(.85,.18+Math.abs(c)/9),bg=c>=0?`rgba(16,185,129,${a})`:`rgba(244,63,94,${a})`,op=signals.some(z=>z.sym===q&&z.status==="open");
+  return `<div class="mc${i<6?" big":""}${op?" op":""}" data-rd="${q}" style="background:${bg}"><b>${name(q).replace("1000","")}</b><span>${c>=0?"+":""}${c.toFixed(1)}%</span></div>`}).join("")}
+function drawSpark(){
+ const e=$("sp");if(!e)return;
+ if(cur==="ALL"||!D[cur]){e.innerHTML=statsHtml();return}
+ const tfl=[...loaded].filter(t=>TFS[t]).sort((a,b)=>a-b);
+ const cells=tfl.map(tf=>{
+  const x=slot(cur,tf),cs=x.c;if(cs.length<205)return"";
+  const I=x.I||(x.I=ind(cs)),n=cs.length-1,p=I.c[n],up=p>I.e50[n]&&I.e50[n]>I.e200[n],dn=p<I.e50[n]&&I.e50[n]<I.e200[n];
+  const r=I.r[n]||50,ax=I.x[n]||0;
+  return `<div class="mtf-cell"><div class="mtf-h"><span>${TFS[tf]}</span><span class="${up?"mtf-up":dn?"mtf-dn":"mtf-fl"}">${up?"↗ Тренд":dn?"↘ Шорт":"→ Флэт"}</span></div><div class="mtf-s">RSI ${r.toFixed(0)} · ADX ${ax.toFixed(0)}</div></div>`;
+ }).filter(Boolean).join("");
+ e.innerHTML=cells?`<div class="mtf-bar">${cells}</div>`:"";
+}
+function status(t,cls){const e=$("st");e.className=cls||"";e.querySelector("span").textContent=t}
+const send=o=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify(o))};
+const sub=t=>{const a=args(t);for(let i=0;i<a.length;i+=100)send({op:"subscribe",args:a.slice(i,i+100)})};
+const args=tf=>COINS.map(s=>`kline.${tf}.${s}`);
+const loaded=new Set();
+const needTfs=()=>new Set([...watch,...[...watch].map(t=>HT[t]),"60"]);
+async function ensure(){$("pg").style.opacity=1;for(const t of needTfs()){if(!loaded.has(t)){loaded.add(t);await warm(t);sub(t)}}$("pg").style.opacity=0}
+function drawSnd(){$("sndi").textContent=sound?"🔊":"🔇";$("sndt").textContent=sound?"Звук вкл":"Звук выкл";$("snd").classList.toggle("on",sound)}
+function setSound(v){sound=v;if(v){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();beep("sig")}catch(e){}}drawSnd()}
+$("snd").onclick=()=>setSound(!sound);
+$("notif").onclick=()=>{if(window.Notification)Notification.requestPermission().then(p=>{$("notif").textContent=p==="granted"?"Уведомления включены":"Уведомления запрещены в браузере"})};
+drawSnd();
+
+/* IN-PAGE MODAL LOGIC */
+let modalMode="";
+function openModal(mode){
+ modalMode=mode;
+ const m=$("modal"),inp=$("modInp"),txt=$("modTxt"),lst=$("modList"),pre=$("modPresets");
+ lst.innerHTML="";pre.innerHTML="";inp.value="";txt.value="";
+ if(mode==="alert"){
+  if(!D[cur])return;
+  const px=D[cur].price||0;
+  $("modTitle").textContent=`🔔 Алерт по ${name(cur)}`;
+  $("modSub").textContent=`Текущая цена: ${fmt(px)} USDT. Уведомление сработает при пересечении уровня.`;
+  inp.style.display="block";txt.style.display="none";
+  inp.placeholder="Введи цену алерта…";
+  inp.value=px?fx(cur,px*1.01):"";
+  [[-2,"-2%"],[-1,"-1%"],[1,"+1%"],[2,"+2%"]].forEach(([pct,lbl])=>{
+   const b=document.createElement("button");b.textContent=lbl;
+   b.onclick=()=>{if(px)inp.value=fx(cur,px*(1+pct/100))};
+   pre.appendChild(b);
+  });
+  const curAlerts=alerts.filter(a=>a.sym===cur);
+  if(curAlerts.length){
+   lst.innerHTML=curAlerts.map((a,idx)=>`<div class="modal-item"><span>${a.dir==="up"?"↗ Выше":"↘ Ниже"} <b>${a.price}</b></span><button data-delal="${idx}">✕</button></div>`).join("");
+   lst.querySelectorAll("[data-delal]").forEach(b=>b.onclick=()=>{
+    const target=curAlerts[+b.dataset.delal];
+    alerts=alerts.filter(x=>x!==target);ui();drawChart();openModal("alert");
+   });
+  }
+ }else if(mode==="restore"){
+  $("modTitle").textContent="Восстановить из резервной копии";
+  $("modSub").textContent="Вставь JSON-строку резервной копии настроек и журнала сигналов:";
+  inp.style.display="none";txt.style.display="block";
+  txt.placeholder='{"cfg": ...}';
+ }
+ m.classList.add("open");
+ setTimeout(()=>(mode==="alert"?inp:txt).focus(),50);
+}
+function closeModal(){$("modal").classList.remove("open");modalMode=""}
+$("modCancel").onclick=closeModal;
+$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
+$("modOk").onclick=()=>{
+ if(modalMode==="alert"){
+  const v=parseFloat(($("modInp").value||"").replace(",","."));
+  if(!v||!D[cur]){toast("Укажи корректную цену");return}
+  alerts.push({sym:cur,price:v,dir:v>=D[cur].price?"up":"dn"});
+  ui();drawChart();toast(`🔔 Алерт на ${name(cur)} установлен: ${v}`);closeModal();
+ }else if(modalMode==="restore"){
+  const t=$("modTxt").value.trim();if(!t)return;
+  try{const o=JSON.parse(t);if(o.cfg)localStorage.setItem("cfg5",o.cfg);if(o.ui)localStorage.setItem("ui5",o.ui);if(o.sig)localStorage.setItem("sig4",o.sig);closeModal();location.reload()}catch(e){toast("Ошибка: неверный формат резервной копии")}
+ }
+};
+$("coinSort").addEventListener("click",e=>{
+ const b=e.target.closest("[data-cs]");if(!b)return;
+ coinSortMode=b.dataset.cs;
+ $("coinSort").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
+ drawTabs();
+});
+$("sigSort").addEventListener("change",()=>{sigSortMode=$("sigSort").value;render()});
+let rq=0;const schedule=()=>{if(rq)return;rq=setTimeout(()=>{rq=0;render()},500)};
+document.addEventListener("pointerdown",()=>{hold=Date.now()+1200},true);
+document.addEventListener("visibilitychange",()=>{if(document.hidden){saveSig();cacheSave();pushState()}});
+addEventListener("pagehide",()=>{saveSig();cacheSave();pushState()});
+setInterval(()=>{saveSig();cacheSave()},180000);setInterval(pushState,20000);applyTheme();setInterval(preScan,3000);
+$("list").addEventListener("click",e=>{const mc=e.target.closest("[data-close]");if(mc){const z=signals.find(q=>q.id===mc.dataset.close);if(z&&z.status==="open"){z.status="manual";z.exit=D[z.sym].price;saveSig();toast("Сделка отмечена закрытой вручную");render()}return}const g=e.target.closest("[data-app]");if(g){openBybit(g.dataset.app);return}const c=e.target.closest("[data-cv]");if(c){copyText(c.dataset.cv, c.dataset.cl+" "+c.dataset.cv+" скопирован");return}const b=e.target.closest("[data-copy]");if(!b)return;const s=signals.find(z=>z.id===b.dataset.copy);if(!s)return;
+ const t=`${s.side} ${s.sym} x${s.lev} изолир. | Вход ${fx(s.sym,s.entry)} | Стоп ${fx(s.sym,s.sl)} | Тейк ${fx(s.sym,s.tp)} | Объём ${s.qtyS}`;
+ copyText(t,"Сигнал скопирован")});
+const goCoin=e=>{const r=e.target.closest("[data-rd]");if(!r)return;cur=r.dataset.rd;ui();drawTabs();render();scrollTo({top:0,behavior:"smooth"})};
+["rdb","pre","mpb"].forEach(id=>$(id).addEventListener("click",goCoin));
+$("mcd").addEventListener("toggle",()=>{if($("mcd").open)mcRun()});$("mcr").onclick=mcRun;
+$("mpd").addEventListener("toggle",drawMap);
+$("list").addEventListener("toggle",e=>{const d=e.target;if(d.dataset&&d.dataset.sid){d.open?OPEN.add(d.dataset.sid):OPEN.delete(d.dataset.sid)}},true);
+$("al").onclick=()=>openModal("alert");
+$("chh").addEventListener("click",e=>{const b=e.target.closest("[data-ct]");if(!b)return;ctf=b.dataset.ct;$("chartbox").dataset.k="";drawChart()});
+$("cv").addEventListener("pointermove",e=>{const cv=$("cv"),r=cv.getBoundingClientRect(),k=Math.floor((e.clientX-r.left)/(cv._step||1));hov=Math.max(0,Math.min((cv._n||1)-1,k));schedChart()});
+$("cv").addEventListener("pointerleave",()=>{hov=-1;schedChart()});
+$("fv").onclick=()=>{if(!D[cur])return;fav.has(cur)?fav.delete(cur):fav.add(cur);ui();drawTabs();render()};
+addEventListener("keydown",e=>{
+ if(e.key==="Escape"&&$("modal").classList.contains("open")){closeModal();return}
+ if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.key==="/"){e.preventDefault();$("find").focus()}
+ else if(e.key==="m"||e.key==="M"||e.key==="ь")setSound(!sound);
+ else if(e.key==="a"||e.key==="A"||e.key==="ф"){cur="ALL";ui();drawTabs();render()}
+ else if(e.key==="f"||e.key==="F"||e.key==="а"){cur="FAV";ui();drawTabs();render()}});
+$("bk").onclick=()=>{try{const o={cfg:localStorage.getItem("cfg5"),ui:localStorage.getItem("ui5"),sig:JSON.stringify(signals)};copyText(JSON.stringify(o),"Резервная копия скопирована: сохрани её в заметках")}catch(e){toast("Не удалось скопировать")}};
+$("rs").onclick=()=>openModal("restore");
+
+/* ===== LAB: загрузка истории, train/validation/OOS, walk-forward ===== */
+const LAB_TFS=["15","60","240"],LAB_BARS={"15":12000,"60":9000,"240":4500};
+const ldbOpen=()=>new Promise((res,rj)=>{const r=indexedDB.open("scalp5lab",1);r.onupgradeneeded=()=>r.result.createObjectStore("k");r.onsuccess=()=>res(r.result);r.onerror=()=>rj(r.error)});
+async function ldbGet(key){try{const db=await ldbOpen();return await new Promise(res=>{const q=db.transaction("k").objectStore("k").get(key);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)})}catch(e){return null}}
+async function ldbPut(key,val){try{const db=await ldbOpen();db.transaction("k","readwrite").objectStore("k").put(val,key)}catch(e){}}
+const packC=c=>{const a=new Float64Array(c.length*6);c.forEach((x,i)=>a.set([x.t,x.o,x.h,x.l,x.c,x.v],i*6));return a};
+const unpackC=a=>{const c=[];for(let i=0;i<a.length;i+=6)c.push({t:a[i],o:a[i+1],h:a[i+2],l:a[i+3],c:a[i+4],v:a[i+5]});return c};
+async function labPages(sym,tf,untilT,maxBars){
+ let end=Date.now(),all=[];
+ while(all.length<maxBars){
+  const r=await api(`https://api.bybit.com/v5/market/kline?category=linear&symbol=${sym}&interval=${tf}&limit=1000&end=${end}`);
+  const rows=r.list.map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}));if(!rows.length)break;
+  all=all.concat(rows);const oldest=rows[rows.length-1].t;end=oldest-1;if(rows.length<1000||oldest<=untilT)break;await sleep(70)}
+ return all}
+async function labKlines(sym,tf,bars){
+ const tm=tf*6e4,key=sym+"|"+tf,cached=await ldbGet(key);let have=cached?unpackC(cached):[];
+ const full=!have.length||have.length<bars*.9,fresh=await labPages(sym,tf,full?0:have[have.length-1].t,bars);
+ const m=new Map();(full?[]:have).forEach(x=>m.set(x.t,x));fresh.forEach(x=>m.set(x.t,x));
+ let a=[...m.values()].sort((p,q)=>p.t-q.t);
+ if(a.length&&a[a.length-1].t+tm>Date.now())a.pop();                        // последняя свеча ещё не закрыта
+ a=a.slice(-bars);
+ let gaps=0;for(let i=1;i<a.length;i++)if(a[i].t-a[i-1].t!==tm)gaps++;
+ ldbPut(key,packC(a));return{c:a,gaps}}
+async function labRun(){
+ if(LAB.running)return;LAB.running=true;LAB.err="";LAB.progress=0;labDraw();
+ try{
+  const N=Math.max(5,Math.min(60,num("labn")||20)),P=EP();
+  const coins=[...new Set(["BTCUSDT",...COINS])].slice(0,N);
+  const jobs=[];for(const s of coins)for(const t of LAB_TFS)jobs.push([s,t]);
+  const data={};let done=0,gaps=0;const total=jobs.length;
+  const worker=async()=>{while(jobs.length){const[s,t]=jobs.shift();
+    try{const r=await labKlines(s,t,LAB_BARS[t]);data[s+"|"+t]=r.c;gaps+=r.gaps}catch(e){LAB.err="ошибка загрузки "+s+" "+TFS[t]+": "+(e.message||e)}
+    done++;LAB.progress=done/total*.7;LAB.msg="загрузка истории Bybit: "+done+"/"+total;labDraw()}};
+  await Promise.all([1,2,3,4].map(worker));
+  const btc=data["BTCUSDT|60"];if(!btc||btc.length<500)throw new Error("нет истории BTC 1ч — проверка невозможна");
+  const trades=[],meta={};let k=0;
+  for(const tf of LAB_TFS)for(const sym of coins){k++;
+   const cs=data[sym+"|"+tf],h=data[sym+"|"+ENG.HT[tf]];
+   if(cs&&h&&cs.length>=800&&h.length>=260){const tr=ENG.scanSeries(sym,+tf,cs,h,btc,P);tr.forEach(x=>{x.tf=tf});for(const x of tr)trades.push(x);meta[sym+"|"+tf]={t0:cs[0].t,t1:cs[cs.length-1].t+tf*6e4,n:cs.length}}
+   LAB.progress=.7+.28*k/(coins.length*LAB_TFS.length);LAB.msg="анализ: "+k+"/"+(coins.length*LAB_TFS.length);if(k%4===0){labDraw();await sleep(0)}}
+  LAB.msg="отбор стратегий, OOS, walk-forward…";labDraw();await sleep(0);
+  const res=ENG.analyze(trades,meta,P,{riskPct:num("risk")||1});
+  Object.assign(LAB,{res,ts:Date.now(),sig:labSig(P),coins:coins.length,nTrades:trades.length,gaps,progress:1,msg:""});
+  try{localStorage.setItem("lab1",JSON.stringify({ts:LAB.ts,sig:LAB.sig,res,coins:LAB.coins,nTrades:LAB.nTrades,gaps}))}catch(e){}
+  toast(Object.keys(res.approved).length?"Lab: найдены стратегии с преимуществом: "+Object.keys(res.approved).length:"Lab: преимущество не доказано ни у одной стратегии → NO TRADE")
+ }catch(e){LAB.err=String(e.message||e)}
+ finally{LAB.running=false;labDraw();render()}}
+function labLoad(){try{const o=JSON.parse(localStorage.getItem("lab1")||"null");if(o&&o.res){LAB.res=o.res;LAB.ts=o.ts;LAB.sig=o.sig;LAB.coins=o.coins;LAB.nTrades=o.nTrades;LAB.gaps=o.gaps}}catch(e){}}
+
+/* ===== LAB: отображение ===== */
+const f2=v=>isFinite(v)?v.toFixed(2):"∞",f1=v=>isFinite(v)?v.toFixed(1):"∞",pc0=v=>Math.round(v*100)+"%";
+const dts=t=>new Date(t).toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit",year:"2-digit"});
+const SN=k=>{const[tf,st]=k.split("|");return st?(TFS[tf]||tf)+" · "+(ENG.SNAME[st]||st):(ENG.SNAME[k]||k)};
+function curveSvg(lines,h){h=h||110;const W=560;let lo=0,hi=0,t0=Infinity,t1=-Infinity;
+ lines.forEach(l=>l.pts.forEach(p=>{lo=Math.min(lo,p[1]);hi=Math.max(hi,p[1]);t0=Math.min(t0,p[0]);t1=Math.max(t1,p[0])}));if(!isFinite(t0)||t1<=t0)return"";
+ const y=v=>(h-6-(v-lo)/((hi-lo)||1)*(h-12)).toFixed(1),x=t=>((t-t0)/(t1-t0)*W).toFixed(1);
+ return `<svg viewBox="0 0 ${W} ${h}" preserveAspectRatio="none" style="width:100%;height:${h}px;margin-top:8px"><line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="#8b9bbd" stroke-dasharray="3 5" opacity=".5"/>`+
+  lines.map(l=>`<polyline points="${l.pts.map(p=>x(p[0])+","+y(p[1])).join(" ")}" fill="none" stroke="${l.col}" stroke-width="2" ${l.dash?'stroke-dasharray="5 4"':""}/>`).join("")+`</svg>`}
+const mGrid=(m,extra)=>`<div class="stats"><span>Сделок <b>${m.n}</b></span><span>Win Rate <b>${m.n?pc0(m.wr):"—"}</b></span><span>Profit Factor <b>${m.n?f2(m.pf):"—"}</b></span><span>Expectancy <b>${m.n?f2(m.exp)+"R":"—"}</b></span><span>Ср. прибыль <b>${m.n?f2(m.avgW)+"R":"—"}</b></span><span>Ср. убыток <b>${m.n?f2(m.avgL)+"R":"—"}</b></span><span>Макс. просадка <b>${m.n?f1(m.maxDDpct)+"% ("+f1(m.maxDDR)+"R)":"—"}</b></span><span>Sharpe <b>${m.n?f2(m.sharpe):"—"}</b></span><span>Sortino <b>${m.n?f2(m.sortino):"—"}</b></span><span>Ср. длительность <b>${m.n?(m.avgMin>=120?f1(m.avgMin/60)+" ч":Math.round(m.avgMin)+" мин"):"—"}</b></span><span>t-статистика <b>${m.n?f1(m.t):"—"}</b></span>${extra||""}</div>`;
+const tblH=(head,rows)=>`<div class="tw"><table class="tb"><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+const rowM=(k,r)=>[k,r.n,pc0(r.wr),f2(r.exp)+"R",f2(r.pf),f2(r.sumR)+"R"];
+function labHtml(){
+ let h="";const r=LAB.res;
+ h+=`<div class="ms" style="margin-top:8px">Здесь проверяется, есть ли у каждой стратегии <b>положительное математическое ожидание после комиссий, проскальзывания и funding</b>. Данные делятся по времени: <b>train 50% → validation 20% → OOS 30%</b>. Выбор стратегий делается только по train+validation; OOS не участвует в выборе и показывается один раз. Параметры не подгоняются.</div>`;
+ h+=`<div class="btn-row"><button class="btn" id="labrun" ${LAB.running?"disabled":""}>${LAB.running?"Идёт проверка…":"Запустить проверку стратегий (Lab)"}</button></div>`;
+ if(LAB.running)return h+`<div class="ms">${LAB.msg||""}</div><div class="fr"><span>прогресс</span><div><i style="width:${Math.round(LAB.progress*100)}%"></i></div><b>${Math.round(LAB.progress*100)}%</b></div>`;
+ if(LAB.err)h+=`<div class="late"><span>⚠ ${LAB.err}</span></div>`;
+ if(!r)return h+`<div class="ms">Проверка ещё не выполнялась. Пока она не выполнена, новые сетапы получают класс NO TRADE.</div>`;
+ const ap=Object.keys(r.approved),valid=labValid();
+ h+=`<div class="${ap.length?"okk":"late"}" style="margin-top:10px;display:block"><b>${ap.length?"Преимущество доказано для: "+ap.map(SN).join("; "):"Преимущество не доказано ни у одной стратегии → торговые сигналы запрещены (NO TRADE)"}</b><br><span class="age">Проверено ${dts(LAB.ts)} ${new Date(LAB.ts).toLocaleTimeString("ru-RU")} · монет ${LAB.coins} · сделок в тесте ${LAB.nTrades}${LAB.gaps?" · пропусков в данных "+LAB.gaps:""}${valid?"":" · <b>параметры изменены после проверки — результат не применяется, перезапусти</b>"}</span></div>`;
+ h+=`<h4 class="h4">1. Отбор (train+validation)</h4><div class="ms">Условия: сделок ≥ ${ENG.SEL.minN}, expectancy ≥ +${ENG.SEL.minMean}R, t-статистика ≥ ${f2(r.tCrit)} (поправка Бонферрони на ${LAB_TFS.length*ENG.STRATS.length} проверенных гипотез, учёт кластеризации по дням) и плюс отдельно в train и в validation.</div>`;
+ h+=tblH(["Стратегия","n","Expectancy","t","Win Rate","train","val","Итог"],r.approvals.filter(a=>a.n>0).map(a=>[SN(a.key),a.n,f2(a.exp)+"R",f1(a.t),pc0(a.wr),f2(a.expTrain)+"R ("+a.nTrain+")",f2(a.expVal)+"R ("+a.nVal+")",a.ok?"<b style='color:var(--long)'>✔ принята</b>":"<span style='color:var(--short)'>✘</span>"]));
+ h+=`<h4 class="h4">2. Out-of-sample (${LAB_TFS.map(t=>{const b=r.bounds[t];return b?TFS[t]+" с "+dts(b.T2):""}).join(", ")})</h4>`;
+ h+=`<div class="ms"><b>Только принятые стратегии</b> (с лимитами портфеля: ≤${num("maxopen")||5} позиций, дневной лимит, серия стопов):</div>`+(r.oos.selected.port.n?mGrid(r.oos.selected.port):`<div class="ms">Принятых стратегий нет — торговать нечем.</div>`);
+ h+=`<div class="ms" style="margin-top:10px"><b>Контроль: все стратегии без отбора</b> (показывает, что было бы без фильтрации по доказательствам):</div>`+mGrid(r.oos.allUnfiltered.port);
+ const ln=[];if(r.oos.allUnfiltered.curve.length>1)ln.push({pts:r.oos.allUnfiltered.curve,col:"#8b9bbd",dash:1});if(r.oos.selected.curve.length>1)ln.push({pts:r.oos.selected.curve,col:"#10b981"});
+ if(ln.length)h+=curveSvg(ln)+`<div class="ms">Кривая капитала OOS при риске ${num("risk")||1}% на сделку (зелёная — принятые стратегии, пунктир — без отбора).</div>`;
+ h+=`<h4 class="h4">3. Walk-forward (expanding)</h4><div class="ms">Для каждого окна стратегии выбираются только по сделкам, закрытым ДО него, и тестируются на следующем окне. Итог по всем окнам:</div>`+(r.wfa.port.n?mGrid(r.wfa.port):`<div class="ms">Ни в одном окне не было стратегий с доказанным преимуществом.</div>`);
+ h+=tblH(["ТФ","Окно","Выбрано","n","Expectancy"],r.wfa.folds.map(w=>[TFS[w.tf],dts(w.from)+"–"+dts(w.to),w.approved.map(k=>ENG.SNAME[k]).join(", ")||"—",w.m.n,w.m.n?f2(w.m.exp)+"R":"—"]));
+ h+=`<h4 class="h4">4. Результаты OOS по группам (все стратегии, без отбора)</h4>`;
+ h+=`<div class="ms">По таймфреймам</div>`+tblH(["ТФ","n","Win","Expectancy","PF","Σ R"],r.tables.tfOOSall.map(x=>rowM(TFS[x.k]||x.k,x)));
+ h+=`<div class="ms">По стратегиям</div>`+tblH(["Стратегия","n","Win","Expectancy","PF","Σ R"],r.tables.stratOOSall.filter(x=>x.n>=5).map(x=>rowM(SN(x.k),x)));
+ h+=`<div class="ms">По монетам (топ-15 по числу сделок)</div>`+tblH(["Монета","n","Win","Expectancy","PF","Σ R"],r.tables.coinOOSall.slice(0,15).map(x=>rowM(name(x.k),x)));
+ h+=`<h4 class="h4">5. Калибровка классов качества</h4><div class="ms">Доля прибыльных сделок (R&gt;0) у принятых стратегий: валидация → OOS. Показывается пользователю как вероятность только при n ≥ 30.</div>`;
+ h+=tblH(["Класс","Валидация","ДИ 95%","OOS","Expectancy OOS"],["B","A","A+"].map(g=>{const c=r.calib[g];return[g,c.val.n?pc0(c.val.w/c.val.n)+" (n="+c.val.n+")":"нет данных",c.val.n?pc0(c.val.ci[0])+"–"+pc0(c.val.ci[1]):"—",c.oos.n?pc0(c.oos.w/c.oos.n)+" (n="+c.oos.n+")":"нет данных",c.oos.n?f2(c.oos.exp)+"R":"—"]}));
+ h+=`<div class="ms">Выше — баллы 0–10 у всех сделок OOS (проверка, что больше баллов = лучше результат):</div>`+tblH(["Баллы","n","Expectancy","Win"],r.ptsOOS.slice().sort((a,b)=>a.k<b.k?-1:1).map(x=>[x.k,x.n,f2(x.exp)+"R",pc0(x.wr)]));
+ h+=`<h4 class="h4">6. Полезность подтверждений</h4><div class="ms">Средний результат сделок, где подтверждение было / не было (train+val → OOS). Если «с» не лучше «без», подтверждение не доказало пользы.</div>`;
+ h+=tblH(["Подтверждение","train+val: с","без","OOS: с","без"],r.ablation.slice().sort((a,b)=>b.tv.nWith-a.tv.nWith).map(a=>[a.tag,f2(a.tv.expWith)+"R ("+a.tv.nWith+")",f2(a.tv.expWithout)+"R ("+a.tv.nWithout+")",f2(a.oos.expWith)+"R ("+a.oos.nWith+")",f2(a.oos.expWithout)+"R ("+a.oos.nWithout+")"]));
+ if(r.mc)h+=`<h4 class="h4">7. Monte Carlo (OOS принятых стратегий)</h4><div class="stats"><span>Шанс плюса за ${r.mc.days} дн. <b>${pc0(r.mc.pPlus)}</b></span><span>Медиана <b>${sg(r.mc.med*100)}%</b></span><span>Худшие 5% <b>${sg(r.mc.p05*100)}%</b></span><span>Ср. просадка <b>${pc0(r.mc.ddMed)}</b></span><span>Просадка &gt;20% <b>${pc0(r.mc.dd20)}</b></span><span>Падение −50% <b>${pc0(r.mc.ruin50)}</b></span></div><div class="ms">Блочный бутстрап по дням (сохраняет кластеры сделок), ${r.mc.paths} сценариев.</div>`;
+ return h}
+function labDraw(){const e=$("labb");if(!e)return;e.innerHTML=labHtml();const b=$("labrun");if(b)b.onclick=labRun;
+ const bn=$("labbn");if(bn)bn.textContent=LAB.running?"идёт…":!LAB.res?"не выполнен":labValid()?(Object.keys(LAB.res.approved).length?Object.keys(LAB.res.approved).length+" принято":"NO TRADE"):"устарел"}
+
+/* ===== v21: СИГНАЛЫ, ПАНЕЛИ, СТАТИСТИКА ===== */
+function onSignal(s){
+ s.id=Date.now()+"-"+Math.random().toString(36).slice(2,6);signals.unshift(s);signals=signals.slice(0,2000);beep("sig");saveSig();
+ toast(`${s.grade} · ${s.side=="LONG"?"▲ Лонг":"▼ Шорт"} ${name(s.sym)} ${TFS[s.tf]} · вход ${fmt(s.entry)}`);
+ say(`Подтверждённый сигнал класса ${s.grade}. ${s.side=="LONG"?"Лонг":"Шорт"} ${vname(s.sym)}, ${TFS[s.tf]}. Вход ${fx(s.sym,s.entry)}. Стоп ${fx(s.sym,s.sl)}. Тейк ${fx(s.sym,s.tp)}. Плечо ${s.lev}.`);
+ if(sound&&window.Notification&&Notification.permission==="granted")
+  new Notification(`${s.grade} ${s.side} ${name(s.sym)} ${TFS[s.tf]}`,{body:`Подтверждено закрытой свечой. Вход ${fmt(s.entry)}, стоп ${fmt(s.sl)}, ТП1 ${fmt(s.tp1)}, ТП2 ${fmt(s.tp)}, x${s.lev}`})}
+const STT={open:"открыт",take:"тейк взят",stop:"стоп",be:"безубыток",manual:"закрыта вручную",time:"закрыта по времени",expired:"отменён"};
+const stTag=s=>s.status=="open"?(s.be?"50% взято, стоп на входе":"открыт"):s.status=="be"&&s.p1?"частичный тейк":(STT[s.status]||s.status);
+function story(s){
+ const t=[],ok=(s.checks||[]).filter(c=>c.ok).map(c=>c.txt);
+ t.push(`Стратегия «${ENG.SNAME[s.strat]||s.strat||"—"}»: ${(s.why||[]).slice(1).join("; ")||"условия выполнены"}. Сигнал подтверждён закрытой свечой ${TFS[s.tf]}; на старшем ТФ (${TFS[ENG.HT[s.tf]||s.tf]}) и у BTC нет встречного тренда.`);
+ if(s.checks)t.push(`Подтверждений качества: ${s.pts} из 10 (класс ${s.grade}).`);
+ t.push(`Стоп ${fx(s.sym,s.sl)} (−${s.sp.toFixed(2)}%): если свеча закроется за ним, идея отменена. ТП1 ${fx(s.sym,s.tp1)} (+1R): закрыть 50% и перенести стоп на вход. ТП2 ${fx(s.sym,s.tp)} (+${s.rr||3}R).`);
+ if(s.warn&&s.warn.length)t.push("На что обратить внимание: "+s.warn.join("; ")+".");
+ return t.join(" ")}
+function gCls(g){return g==="A+"?"gp":g==="A"?"ga":g==="B"?"gb":"gn"}
+function cardHtml(s){
+ const pr=D[s.sym]?D[s.sym].price:s.entry,lo=Math.min(s.sl,s.tp),hi=Math.max(s.sl,s.tp),L2=s.side=="LONG",
+ pc=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100)).toFixed(1),e=pc(s.entry),tp1v=s.tp1||(L2?s.entry+s.risk:s.entry-s.risk),tp1p=pc(tp1v),
+ netRR=s.costR!=null?(s.rr||3)-s.costR:null,okN=(s.checks||[]).filter(c=>c.ok).length;
+ const chk=(s.checks||[]).length?`<details class="why" data-sid="${s.id}c" ${OPEN.has(s.id+"c")?"open":""}><summary>Подтверждения входа: ${okN} из ${s.checks.length}</summary><div class="ckl">${s.checks.map(c=>`<div class="ck ${c.ok?"y":"n"}"><i>${c.ok?"✔":"✘"}</i><span><small>${c.g}</small> ${c.txt}</span></div>`).join("")}</div>${(s.deriv||[]).length?`<div class="ckl" style="margin-top:6px">${s.deriv.map(d=>`<div class="ck ${d.ok===true?"y":d.ok===false?"n":"u"}"><i>${d.ok===true?"✔":d.ok===false?"✘":"•"}</i><span><small>Деривативы (не проверены в Lab)</small> ${d.txt}</span></div>`).join("")}</div>`:""}</details>`:"";
+ const can=(s.cancel||[]).length?`<details class="why" data-sid="${s.id}x" ${OPEN.has(s.id+"x")?"open":""}><summary>Причины отмены сигнала</summary><ul class="cl">${s.cancel.map(c=>`<li>${c}</li>`).join("")}</ul></details>`:"";
+ return `<div class="sig ${s.side}">
+  <div class="hd"><div class="hd-left"><b class="s">${L2?"▲ Лонг":"▼ Шорт"}</b><span class="sym">${name(s.sym)}</span><span class="tf">${TFS[s.tf]}</span>${s.grade?`<span class="gr ${gCls(s.grade)}">${s.grade}</span>`:""}</div>
+  <span class="tag ${(s.status=="take"||(s.status=="be"&&s.p1))?"win":s.status=="stop"?"loss":""}">${stTag(s)}</span></div>
+  ${s.strat&&ENG.SNAME[s.strat]?`<div class="cfrow"><span class="cf m">${ENG.SNAME[s.strat]}</span><span class="cf ${s.approved?"h":"l"}">${s.approved?"преимущество доказано (Lab)":"преимущество НЕ доказано"}</span>${(s.warn||[]).map(w=>`<span class="wn">⚠ ${w}</span>`).join("")}</div>`:""}
+  ${s.calib?`<div class="ms" style="margin:4px 0">${s.calib}</div>`:""}
+  ${pnlHtml(s)}${lateHtml(s)}
+  <div class="lad"><div class="bar"><i style="left:0;width:${e}%;background:${L2?"var(--short)":"var(--long)"}"></i><i style="left:${e}%;right:0;background:${L2?"var(--long)":"var(--short)"}"></i><u style="left:${e}%" title="Вход"></u><span class="tp1-tick" style="left:${tp1p}%" title="ТП1 (+1R)"></span><em style="left:${pc(pr)}%"></em></div>
+  <div class="lb"><span>${L2?"Стоп":"ТП2"}<b>${fmt(lo)}</b></span><span>Вход<b>${fmt(s.entry)}</b></span><span>ТП1 (+1R)<b>${fmt(tp1v)}</b></span><span>${L2?"ТП2":"Стоп"}<b>${fmt(hi)}</b></span></div></div>
+  ${chk}${can}
+  <details class="why" data-sid="${s.id}" ${OPEN.has(s.id)?"open":""}><summary>Почему этот вход</summary><p>${story(s)}</p></details>
+  <div class="act"><button class="go" data-app="${s.sym}">Открыть ${name(s.sym)} в приложении Bybit</button>
+  <button data-cv="${fx(s.sym,s.entry)}" data-cl="Вход">Вход ${fx(s.sym,s.entry)}</button><button data-cv="${fx(s.sym,s.sl)}" data-cl="Стоп">Стоп ${fx(s.sym,s.sl)}</button><button data-cv="${fx(s.sym,tp1v)}" data-cl="ТП1">ТП1 ${fx(s.sym,tp1v)}</button><button data-cv="${fx(s.sym,s.tp)}" data-cl="ТП2">ТП2 ${fx(s.sym,s.tp)}</button><button data-cv="${s.qtyS}" data-cl="Объём">Объём ${s.qtyS}</button></div>
+  <div class="grid"><div><span>Текущая цена</span>${fmt(pr)}</div><div><span>Вход (с проскальзыванием)</span>${fmt(s.entry)}</div><div><span>Risk/Reward</span>1:${(s.rr||3)}${netRR!=null?" (≈1:"+netRR.toFixed(1)+" после издержек)":""}</div>
+  <div><span>Плечо</span>x${s.lev} изолир.</div><div><span>Стоп</span>−${s.sp.toFixed(2)}%</div><div><span>Объём</span>${s.qtyS} ${name(s.sym)}</div>
+  <div><span>Маржа / риск, USDT</span>${s.margin.toFixed(2)} / ${s.ru.toFixed(2)}</div><div><span>Ликвидация (≈)</span>${fmt(s.liq)}</div><div><span>Funding за 8ч</span>${(s.fund*100).toFixed(3)}%</div></div>
+  <div class="ft"><span>${s.fw?"⚠ Funding против позиции · ":""}${s.t.toLocaleTimeString("ru-RU")}</span><span>${s.status==="open"?`<button class="cp" data-close="${s.id}">Закрыл вручную</button> `:""}<button class="cp" data-copy="${s.id}">Копировать</button></span></div></div>`}
+
+/* ---- статистика журнала (реальные закрытые сигналы с комиссиями/проскальзыванием/funding) ---- */
+function statsHtml(){
+ const tr=journalTrades();if(!tr.length)return"";
+ const dep=num("dep")||1,m=ENG.metrics(tr,{riskPct:num("risk")||1});let eq=0;const pts=[[tr[0].t,0]];tr.forEach(x=>{eq+=x.pnl;pts.push([x.te,eq])});
+ const avgMin=tr.reduce((a,x)=>a+x.min,0)/tr.length;
+ return curveSvg([{pts,col:eq>=0?"#10b981":"#f43f5e"}],90)+`<div class="stats"><span>Сделок <b>${m.n}</b></span><span>Винрейт <b>${pc0(m.wr)}</b></span><span>Профит-фактор <b>${f2(m.pf)}</b></span><span>Expectancy <b>${sg(m.exp)}R</b></span><span>Макс. просадка <b>${f1(m.maxDDR)}R</b></span><span>Итог <b>${sg(eq)} USDT (${sg(eq/dep*100)}%)</b></span></div>${m.n<30?`<div class="ms">Мало сделок для выводов (n=${m.n}, нужно ≥ 30).</div>`:""}`}
+function groupTbl(tr,keyf,label){const g=ENG.groupBy(tr,keyf),rows=[];for(const k in g){const m=ENG.metrics(g[k]),pn=g[k].reduce((a,x)=>a+x.pnl,0);rows.push([label(k),m.n,pc0(m.wr),f2(m.exp)+"R",f2(m.pf),sg(pn)])}
+ return tblH(["","n","Win","Expectancy","PF","PnL USDT"],rows.sort((a,b)=>b[1]-a[1]))}
+function drawStx(){const e=$("stxb");if(!e||!$("stxd").open)return;const tr=journalTrades();
+ if(!tr.length){e.innerHTML=`<div class="ms" style="margin-top:8px">Закрытых сигналов пока нет. Статистика считается по вашему журналу с учётом комиссий, проскальзывания и funding.</div>`;return}
+ const m=ENG.metrics(tr,{riskPct:num("risk")||1}),avgMin=tr.reduce((a,x)=>a+x.min,0)/tr.length;
+ e.innerHTML=statsHtml()+mGrid(m)+`<div class="ms">Средняя длительность: ${avgMin>=120?f1(avgMin/60)+" ч":Math.round(avgMin)+" мин"}</div><h4 class="h4">По монетам</h4>`+groupTbl(tr,x=>x.sym,name)+`<h4 class="h4">По стратегиям</h4>`+groupTbl(tr,x=>x.strat,k=>ENG.SNAME[k]||k)+`<h4 class="h4">По таймфреймам</h4>`+groupTbl(tr,x=>x.tf,k=>TFS[k]||k)+`<h4 class="h4">По классам</h4>`+groupTbl(tr,x=>x.grade,k=>k)}
+
+/* ---- режим рынка + панель риска ---- */
+function drawRisk(){const e=$("rk");if(!e)return;
+ const rs=riskState(),reg=[];for(const tf of ["15","60","240"]){const x=slot("BTCUSDT",tf);if(x.c.length<260)continue;const I=x.I||(x.I=ind(x.c)),r=ENG.regime(I,x.c.length-1);if(r)reg.push({tf,...r})}
+ const cell=(l,v,c)=>`<span>${l}<b${c?` style="color:var(--${c})"`:""}>${v}</b></span>`,P=EP();
+ const lim=(v,max)=>v>=max?"short":v>=max*.7?"amb":"";
+ e.innerHTML=`<div class="rkc"><div class="lbl"><span>Рыночный режим (BTC)</span></div>${reg.length?`<div class="stats">${reg.map(r=>cell(TFS[r.tf]+" · "+r.label,"ADX "+r.adx.toFixed(0)+" · ATR×"+r.vr.toFixed(1),r.vr>1.8?"short":r.adx>=25?"long":"")).join("")}</div>`:`<div class="ms">нет данных BTC</div>`}<div class="ms">Режим — справочная информация; решение о входе принимает только проверенная стратегия.</div></div>
+ <div class="rkc"><div class="lbl"><span>Риск</span><span>${rs.pauseUntil?"⛔ пауза":limitMsg()?"⛔ лимит":"✅ в пределах лимитов"}</span></div><div class="stats">${cell("Открыто (лонг/шорт)",rs.open+" ("+rs.long+"/"+rs.short+")",lim(rs.open,num("maxopen")||5))}${cell("Открытый риск",rs.openRisk.toFixed(2)+" USDT ("+rs.openRiskPct.toFixed(1)+"%)")}${cell("Экспозиция",rs.exposure.toFixed(2)+"× из "+(num("maxexp")||3)+"×",lim(rs.exposure,num("maxexp")||3))}${cell("Результат дня",sg(rs.dayR)+"R из −"+(num("dloss")||3)+"R",rs.dayR<=-(num("dloss")||3)*.7?"short":rs.dayR>0?"long":"")}${cell("Стопов сегодня",rs.stops+" из "+(num("stoplim")||4),lim(rs.stops,num("stoplim")||4))}${cell("Серия стопов",rs.streak+" (пауза с 3)",rs.streak>=3?"short":rs.streak===2?"amb":"")}</div><div class="ms">Риск на сделку ${num("risk")||1}% от ${num("dep")} USDT · плечо ≤ ${num("mlev")||10}x · комиссии: taker ${(P.feeTaker*100).toFixed(3)}% / maker ${(P.feeMaker*100).toFixed(3)}% · проскальзывание ${(P.slip*1e4).toFixed(0)} б.п. · риск после убытка не увеличивается.</div></div>`}
+function labBanner(){const e=$("labbanner");if(!e)return;
+ if(!$("btgate").checked){e.innerHTML=`<div class="mkt r"><div class="mt"><span class="mi">⚠️</span><b>Проверка преимущества отключена в настройках</b></div><div class="ms">Сигналы выдаются без доказанного положительного ожидания. Это режим повышенного риска.</div></div>`;return}
+ if(LAB.running){e.innerHTML=`<div class="mkt y"><div class="mt"><span class="mi">🧪</span><b>Идёт проверка стратегий на исторических данных…</b></div><div class="ms">${LAB.msg||""} Пока она не завершена, новые сетапы получают NO TRADE.</div></div>`;return}
+ if(!LAB.res){e.innerHTML=`<div class="mkt y"><div class="mt"><span class="mi">🧪</span><b>Стратегии ещё не проверены → торговые сигналы запрещены</b></div><div class="ms">Откройте «Lab» и запустите проверку (или включите автозапуск в настройках).</div></div>`;return}
+ const ap=Object.keys(LAB.res.approved);
+ if(!labValid())e.innerHTML=`<div class="mkt y"><div class="mt"><span class="mi">♻️</span><b>Параметры изменены после проверки</b></div><div class="ms">Результат Lab относится к другим настройкам (R:R, стоп ATR, проскальзывание). Перезапустите проверку.</div></div>`;
+ else if(!ap.length)e.innerHTML=`<div class="mkt r"><div class="mt"><span class="mi">⛔</span><b>NO TRADE: преимущество не доказано ни у одной стратегии</b></div><div class="ms">На истории (${LAB.coins} монет, после комиссий, проскальзывания и funding) ни одна из ${ENG.STRATS.length} стратегий не прошла отбор по train+validation. Это нормальный результат честной проверки: лучше пропустить сделку, чем торговать шум. Подробности в Lab.</div></div>`;
+ else e.innerHTML=`<div class="mkt g"><div class="mt"><span class="mi">✅</span><b>Торгуются только проверенные стратегии: ${ap.map(SN).join("; ")}</b></div><div class="ms">Остальные сетапы получают NO TRADE.</div></div>`}
+function drawAplus(){const e=$("aplb");if(!e)return;const L=signals.filter(s=>s.status==="open"&&s.grade==="A+");
+ const nA=signals.filter(s=>s.status==="open"&&s.grade==="A").length;if($("apcnt"))$("apcnt").textContent=L.length;
+ e.innerHTML=L.length?L.map(cardHtml).join(""):`<div class="ms" style="margin-top:8px">Открытых сигналов класса A+ нет${nA?" (класса A: "+nA+")":""}. A+ — исключительный сетап: ≥ 9 из 10 подтверждений <b>и</b> доказанное преимущество стратегии. Лучше пропустить, чем брать сомнительное.</div>`}
+function drawHist(){const e=$("histb");if(!e)return;if($("histcnt"))$("histcnt").textContent=signals.length+"+"+cands.length;if(!$("histd").open)return;
+ const rows=[...signals.map(s=>({t:s.t.getTime(),sym:s.sym,tf:s.tf,side:s.side,strat:s.strat,grade:s.grade||"—",res:stTag(s)+(isClosed(s)?" · "+sg(pnlNum(s).r)+"R":""),cls:s.status==="take"||(s.status==="be"&&s.p1)?"win":s.status==="stop"?"loss":""})),
+  ...cands.map(c=>({t:c.t,sym:c.sym,tf:c.tf,side:c.side,strat:c.strat,grade:"NO TRADE",res:c.reasons.join("; "),cls:"nt"}))].sort((a,b)=>b.t-a.t).slice(0,150);
+ if($("histcnt"))$("histcnt").textContent=signals.length+"+"+cands.length;
+ e.innerHTML=rows.length?tblH(["Время","Монета","ТФ","","Стратегия","Класс","Результат / причина отказа"],rows.map(r=>[new Date(r.t).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),name(r.sym),TFS[r.tf]||r.tf,r.side==="LONG"?"▲":"▼",ENG.SNAME[r.strat]||r.strat||"v20",`<span class="gr ${r.grade==="NO TRADE"?"gn":gCls(r.grade)}">${r.grade}</span>`,`<span class="${r.cls}">${r.res}</span>`])):`<div class="ms" style="margin-top:8px">История пуста. Здесь будут все сигналы и все отвергнутые сетапы (NO TRADE) с причиной.</div>`}
+
+/* ---- воронка, Монте-Карло ---- */
+const ADV={"нет доказанного преимущества":"Главная причина: стратегия не прошла проверку Lab (нет положительного ожидания после издержек). Отключать это нельзя без роста риска.","Lab ещё не выполнен":"Запустите проверку стратегий в панели Lab.","мало подтверждений":"Сетап есть, но подтверждений меньше порога класса B.","комиссии и проскальзывание съедают стоп":"Стоп слишком узкий относительно издержек: на таком ТФ торговля невыгодна.","против тренда старшего ТФ":"Входы против тренда старшего ТФ отсеиваются.","против тренда BTC":"Входы против тренда BTC отсеиваются.","мало места до ближайшего уровня":"Ближайший противоположный уровень слишком близко к входу.","лимит коррелированной экспозиции":"Уже много позиций в одну сторону.","рынок в красной зоне":"Рынок в красной зоне.","пауза 4 часа после стопа по монете":"После стопа монета отдыхает 4 часа."};
+function drawFunnel(){const e=$("fnb");if(!e)return;const now=Date.now(),h=36e5,rs=FN.filter(r=>now-r[0]<h),sc=SCN.filter(t=>now-t<h).length,sg2=signals.filter(q=>now-q.t.getTime()<h).length,cnt={};
+ rs.forEach(r=>cnt[r[1]]=(cnt[r[1]]||0)+1);const arr=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+ e.innerHTML=`<div class="ms" style="margin-top:6px">За последний час: проверено свечей ${sc}, найдено сетапов ${rs.length+sg2}, выдано сигналов ${sg2}.</div>`+
+ (arr.length?arr.slice(0,7).map(([k,v])=>`<div class="fr"><span>${k}</span><div><i style="width:${Math.round(100*v/arr[0][1])}%"></i></div><b>${v}</b></div>`).join("")+`<div class="ms">${ADV[arr[0][0]]||""}</div>`:
+ `<div class="ms">${sc?"Подходящих сетапов не появлялось.":"Сканирование ещё не началось: подожди закрытия свечей."}</div>`)}
+function mcRun(){
+ const el=$("mct"),cv=$("mcc"),tr=LAB.res&&labValid()?LAB.res.oosTrades:null;
+ if(!tr||tr.length<20){el.innerHTML="Симуляция строится по OOS-сделкам принятых стратегий из Lab. Сейчас таких сделок недостаточно (принятых стратегий нет или их &lt; 20 сделок): симулировать нечего, и это честнее, чем рисовать красивую кривую по шуму.";cv.style.display="none";return}
+ const mc=ENG.monteCarlo(tr,{riskPct:num("risk")||1,days:60});if(!mc){el.innerHTML="Слишком мало торговых дней в OOS для симуляции.";cv.style.display="none";return}
+ cv.style.display="block";const N=mc.days,bands=mc.bands,dpr=window.devicePixelRatio||1,W=cv.clientWidth||600,H=cv.clientHeight||220;cv.width=W*dpr;cv.height=H*dpr;
+ const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+ let lo=Math.min(...bands.map(b=>b[0]),1),hi=Math.max(...bands.map(b=>b[4]),1);const pad=(hi-lo)*.08||.01;lo-=pad;hi+=pad;
+ const X=t=>t/N*(W-46),Y=v=>H-8-(v-lo)/(hi-lo)*(H-16);
+ const band=(i,j,col)=>{g.fillStyle=col;g.beginPath();bands.forEach((b,t)=>{t?g.lineTo(X(t),Y(b[j])):g.moveTo(X(t),Y(b[j]))});for(let t=N;t>=0;t--)g.lineTo(X(t),Y(bands[t][i]));g.closePath();g.fill()};
+ band(0,4,"rgba(99,102,241,.16)");band(1,3,"rgba(99,102,241,.32)");
+ g.strokeStyle="rgba(255,255,255,.35)";g.setLineDash([4,4]);g.beginPath();g.moveTo(0,Y(1));g.lineTo(W-46,Y(1));g.stroke();g.setLineDash([]);
+ g.strokeStyle="#818cf8";g.lineWidth=2;g.beginPath();bands.forEach((b,t)=>{t?g.lineTo(X(t),Y(b[2])):g.moveTo(X(t),Y(b[2]))});g.stroke();
+ g.fillStyle="#8b9bbd";g.font="11px system-ui";[lo+pad,1,hi-pad].forEach(v=>g.fillText(Math.round((v-1)*100)+"%",W-42,Y(v)+4));
+ el.innerHTML=`<div class="stats"><span>Шанс плюса <b>${pc0(mc.pPlus)}</b></span><span>Медиана <b>${sg(mc.med*100)}%</b></span><span>Худшие 5% <b>${sg(mc.p05*100)}%</b></span><span>Ср. просадка <b>${pc0(mc.ddMed)}</b></span><span>Просадка &gt;20% <b>${pc0(mc.dd20)}</b></span><span>Риск −50% <b>${pc0(mc.ruin50)}</b></span></div><div class="ms" style="margin-top:8px">${N} торговых дней, риск ${(num("risk")||1)}% на сделку, ${mc.paths} сценариев; блочный бутстрап по дням OOS-сделок принятых стратегий (${tr.length}).</div>`}
+
+/* ---- сканер «Найти сетап»: лучший непротиворечивый сетап прямо сейчас (последние 3 закрытые свечи) ---- */
+function scanNowRun(){
+ let best=null;NOREC=true;const P=EP(),ap=approvedMap();
+ try{for(const sym of COINS){if(!D[sym])continue;for(const tf of watch){const x=slot(sym,tf),cs=x.c;if(cs.length<210)continue;const I=x.I||(x.I=ind(cs)),memo={};
+   for(let k=cs.length-1;k>=cs.length-3;k--){const g=liveGate(sym,tf,cs[k].t),ctx={htf:[],btc:[]};ctx.htf[k]=g.h;ctx.btc[k]=g.b;
+    for(const nm of ENG.STRATS){const e=ENG.evalBar(nm,I,cs,k,P,ctx,memo);if(!e.ok||e.grade==="NO TRADE")continue;const sc=(ap[tf+"|"+nm]?100:0)+e.pts;if(!best||sc>best.sc)best={sc,sym,tf,nm,e,k,ap:!!ap[tf+"|"+nm]}}}}}}
+ finally{NOREC=false}
+ if(!best){toast("Сетапов класса B и выше на последних свечах нет — NO TRADE");return}
+ const {sym,tf,nm,e,ap:isAp}=best;cur=sym;ui();drawTabs();render();
+ toast(isAp?`Лучший сетап: ${name(sym)} ${TFS[tf]} ${ENG.SNAME[nm]}, класс ${e.grade}. Если он ещё актуален, сигнал появится при закрытии свечи.`:`${name(sym)} ${TFS[tf]} ${ENG.SNAME[nm]} (класс ${e.grade}) найден, но стратегия не прошла проверку Lab — вход запрещён.`)}
+
+/* ---- основной рендер ---- */
+function render(){
+ if(Date.now()<hold){clearTimeout(render.t);render.t=setTimeout(render,hold-Date.now()+30);return}
+ document.title=(openCount()?`(${openCount()}) `:"")+"Bybit Pro v21";
+ drawSpark();drawChart();drawMkt();drawRadar();drawFunnel();drawPre();drawRisk();labBanner();drawAplus();
+ const all=cur==="ALL"||!D[cur],d=D[cur];
+ $("fv").style.display=(cur==="ALL"||!D[cur])?"none":"grid";$("fv").textContent=fav.has(cur)?"★":"☆";$("al").style.display=$("fv").style.display;
+ const p=$("pr");
+ if(all){
+  const w=signals.filter(s=>s.status==="take"||(s.status==="be"&&s.p1)).length,l=signals.filter(s=>s.status==="stop").length,z=signals.filter(s=>s.status==="be"&&!s.p1).length,o=openCount(),tot=signals.filter(s=>s.status!=="expired").reduce((a,x)=>a+pnlNum(x).n,0);
+  p.textContent=sg(tot)+" USDT";p.className="p "+(tot>=0?"up":"dn");
+  $("pm").innerHTML=`<span class="pill">открыто ${o}</span><span class="pill win">тейков ${w}</span><span class="pill loss">стопов ${l}</span><span class="pill">безубытков ${z}</span><br>Итог журнала с учётом комиссий, проскальзывания и funding. Слежу за <b>${COINS.length}</b> монетами, ТФ: <b>${[...watch].map(t=>TFS[t]).join(", ")}</b>.${limitMsg()}`;
+ }else{
+  p.textContent=d.price?fmt(d.price):"—";p.className="p "+d.dir;
+  const mk=M[cur],lc=LAB.res&&LAB.res.tables.coinOOSall.find(r=>r.k===cur);
+  $("pm").innerHTML=`<b>${name(cur)}</b>`+(mk?` · 24ч <b style="color:${mk.chg>=0?"var(--long)":"var(--short)"}">${mk.chg>=0?"+":""}${mk.chg.toFixed(2)}%</b> · funding <b>${(mk.fund*100).toFixed(3)}%</b> · оборот <b>${(mk.turn/1e6).toFixed(0)} млн $</b>`+(mk.bid&&mk.ask?` · спред <b>${(((mk.ask-mk.bid)/((mk.ask+mk.bid)/2))*100).toFixed(3)}%</b>`:""):"")+"<br>"+(lc?`Lab, OOS по монете (все стратегии, без отбора): ${lc.n} сделок, expectancy ${sg(lc.exp)}R.`:"Монета не входила в выборку Lab.")+limitMsg();
+ }
+ drawStx();drawHist();
+ let L=signals.filter(s=>{
+  const matchCoin=cur==="FAV"?fav.has(s.sym):(all||s.sym===cur);
+  if(!matchCoin||s.status==="expired")return false;
+  if(flt==="open")return s.status==="open";
+  if(flt==="closed")return s.status!=="open";
+  if(flt==="long")return s.side==="LONG";
+  if(flt==="short")return s.side==="SHORT";
+  if(flt==="q")return s.grade==="A+"||s.grade==="A";
+  return true;
+ });
+ if(sigSortMode==="conf")L=L.slice().sort((a,b)=>(b.pts||0)-(a.pts||0));
+ else if(sigSortMode==="pnl")L=L.slice().sort((a,b)=>pnlNum(b).r-pnlNum(a).r);
+ L=L.slice(0,30);
+ $("list").innerHTML=L.length?L.map(cardHtml).join(""):`<div class="empty">Сигналов по выбранному фильтру нет. Это нормально: система выдаёт сигнал только при доказанном преимуществе стратегии и достаточном числе подтверждений. Нажми «⚡ Найти сетап» или дождись закрытия свечи.</div>`;
+}
+function drawTabs(){
+ let list=COINS.filter(s=>s.includes(($("find").value||"").trim().toUpperCase()));
+ if(coinSortMode==="chg")list=list.slice().sort((a,b)=>((M[b]?M[b].chg:-999)-(M[a]?M[a].chg:-999)));
+ else if(coinSortMode==="vol")list=list.slice().sort((a,b)=>((M[b]?M[b].turn:0)-(M[a]?M[a].turn:0)));
+ else list=list.slice().sort((x,y)=>(fav.has(y)?1:0)-(fav.has(x)?1:0));
+ if($("coinCnt"))$("coinCnt").textContent=COINS.length;
+ $("tabs").innerHTML=["ALL","FAV",...list].map(s=>`<button class="${s==cur?"on":""}" data-s="${s}"><span>${s=="ALL"?"Все монеты":s=="FAV"?"★ Избранное":(fav.has(s)?"★ ":"")+name(s).replace("1000","")}</span>${M[s]?`<small class="${M[s].chg>=0?"u":"d"}">${M[s].chg>=0?"+":""}${M[s].chg.toFixed(1)}%</small>`:""}</button>`).join("");
+ $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{cur=b.dataset.s;ui();drawTabs();render()});
+ $("chips").innerHTML=Object.keys(TFS).map(t=>`<button class="${watch.has(t)?"on":""}" data-t="${t}" title="${LAB_TFS.includes(t)?"проверяется в Lab":"не проверяется в Lab: сигналы на этом ТФ будут NO TRADE"}">${TFS[t]}${LAB_TFS.includes(t)?"":" ·?"}</button>`).join("");
+ $("chips").querySelectorAll("button").forEach(b=>b.onclick=()=>toggleTf(b.dataset.t));
+ $("flt").innerHTML=[["all","Все"],["open","Открытые"],["closed","Закрытые"],["q","A+ / A"],["long","▲ Лонг"],["short","▼ Шорт"]].map(([k,t])=>`<button class="${flt==k?"on":""}" data-f="${k}">${t}</button>`).join("");
+ $("flt").querySelectorAll("button").forEach(b=>b.onclick=()=>{flt=b.dataset.f;ui();drawTabs();render()});
+ const MODES=[["intra","Интрадей 15м + 1ч",["15","60"]],["swing","Свинг 1ч + 4ч",["60","240"]],["all","Все проверяемые",["15","60","240"]]];
+ $("modes").innerHTML=MODES.map(m=>`<button class="${m[2].length===watch.size&&m[2].every(t=>watch.has(t))?"on":""}" data-m="${m[0]}">${m[1]}</button>`).join("");
+ $("modes").querySelectorAll("button").forEach(b=>b.onclick=()=>{const m=MODES.find(x=>x[0]===b.dataset.m);watch=new Set(m[2]);save();drawTabs();render();ensure().then(()=>render())});
+}
+
+/* ===== v21: ЗАГРУЗКА ИСТОРИИ, WEBSOCKET, КОНТРОЛЬ СВЕЖЕСТИ ===== */
+async function warmOne(s,tf){
+ const x=slot(s,tf),old=x.c,tm=(+tf)*6e4,last=old.length?old[old.length-1].t:0,lim=Math.min(1000,Math.max(5,last?Math.ceil((Date.now()-last)/tm)+2:1000));
+ const r=await api(`https://api.bybit.com/v5/market/kline?category=linear&symbol=${s}&interval=${tf}&limit=${lim}`);
+ const rows=r.list.reverse().slice(0,-1).map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}));   // последняя запись — ещё не закрытая свеча
+ if(!rows.length)return;
+ x.c=(old.length&&lim<1000)?old.concat(rows.filter(q=>q.t>last)).slice(-1000):rows;x.I=null;x.gap=false;
+ if(!D[s].price&&x.c.length)D[s].price=x.c.at(-1).c}
+async function warm(tf){
+ for(let i=0;i<COINS.length;i+=20){
+  await Promise.all(COINS.slice(i,i+20).map(async s=>{try{await warmOne(s,tf)}catch(e){}}));
+  status(`загрузка ${TFS[tf]}: ${Math.min(i+20,COINS.length)}/${COINS.length}`);$("pg").style.width=(((loaded.size-1)+Math.min(i+20,COINS.length)/COINS.length)/needTfs().size*100).toFixed(0)+"%";render();
+ }
+}
+let was=false,lastMsg=Date.now();
+async function refresh(){status("обновляю историю после обрыва…");for(const t of loaded)await warm(t);render();status("в сети","ok")}
+setInterval(()=>{if(ws&&ws.readyState===1&&Date.now()-lastMsg>30000)ws.close()},10000);
+function drawFresh(){const e=$("fresh");if(!e)return;const age=(Date.now()-lastMsg)/1000,on=ws&&ws.readyState===1;
+ const bad=!on||age>20;e.querySelector("span").textContent=!on?"поток: нет связи":age>20?"данные устарели ("+Math.round(age)+" с)":"данные свежие"+(API.err>API.ok*.2&&API.err>5?" · ошибки API "+API.err:"");
+ e.querySelector("i").style.background=bad?"var(--short)":"var(--long)";e.title=API.lastErr?"Последняя ошибка API: "+API.lastErr:"Поток Bybit WebSocket работает"}
+setInterval(drawFresh,2000);
+function connect(){
+ status("подключение…");
+ ws=new WebSocket("wss://stream.bybit.com/v5/public/linear");
+ ws.onopen=()=>{[...loaded].forEach(t=>sub(t));status("в сети","ok");lastMsg=Date.now();if(was)refresh();was=true};
+ ws.onmessage=ev=>{
+  lastMsg=Date.now();let m;try{m=JSON.parse(ev.data)}catch(e){return}if(!m.topic||!m.topic.startsWith("kline."))return;
+  const[,tf,sym]=m.topic.split("."),d=D[sym];if(!d)return;const x=slot(sym,tf),tm=(+tf)*6e4;
+  m.data.forEach(k=>{
+   const np=+k.close;d.dir=np>d.price?"up":np<d.price?"dn":d.dir;d.price=np;x.live=k.confirm?null:{t:+k.start,o:+k.open,h:+k.high,l:+k.low,c:np,v:+k.volume};
+   signals.forEach(s=>{if(s.sym!==sym||s.status!=="open")return;
+    const L=s.side=="LONG",st=s.be?s.entry:s.sl,hitSL=L?np<=st:np>=st,hitTP=L?np>=s.tp:np<=s.tp;
+    if(hitSL){closeSig(s,s.be?"be":"stop",st);beep(s.be?"be":"stop");say(vname(s.sym)+(s.be?": остаток закрыт в безубыток":": сработал стоп"))}
+    else if(hitTP){closeSig(s,"take",s.tp);beep("take");say(vname(s.sym)+": тейк взят")}
+    else if(!s.be&&s.tp1&&(L?np>=s.tp1:np<=s.tp1)){s.be=true;s.p1=true;beNotify(s)}});
+   if(k.confirm){
+    const t=+k.start;if(x.c.length&&x.c.at(-1).t>=t)return;
+    // разрыв в данных (пропущена свеча): помечаем, не торгуем по дырявой истории, докачиваем
+    if(x.c.length&&t-x.c.at(-1).t>tm*1.5){x.gap=true;warmOne(sym,tf).catch(()=>{});return}
+    const bar={t,o:+k.open,h:+k.high,l:+k.low,c:+k.close,v:+k.volume};
+    x.c.push(bar);if(x.c.length>1000)x.c.shift();x.I=null;x.idx++;
+    signals.forEach(s=>{if(s.sym===sym&&s.tf===tf&&s.status==="open"){barCheck(s,bar);if(s.status==="open"&&(t+tm-s.t.getTime())/tm>=EP().maxHold){closeSig(s,"time",bar.c);toast(name(sym)+": сигнал закрыт по времени")}}});
+    if(watch.has(tf)&&!x.gap){if(x.idx-x.last>=3){const q=evaluate(sym,tf);if(q){x.last=x.idx;emitSignal(q)}}}
+   }
+  });
+  schedule();if(sym===cur&&tf===ctf)schedChart();checkAlerts(sym);
+ };
+ ws.onclose=()=>{status("нет связи, переподключаюсь…","bad");setTimeout(connect,3000)};
+ ws.onerror=()=>ws.close();
+}
+setInterval(()=>send({op:"ping"}),20000);
+
+/* ===== СТАРТ ===== */
+function startScan(){let n=0;
+ COINS.forEach(sym=>[...watch].forEach(tf=>{const x=slot(sym,tf),cs=x.c;if(cs.length<210||!D[sym])return;
+  const tm=(+tf)*6e4,last=cs[cs.length-1];if(Date.now()-(last.t+tm)>2*tm)return;
+  const q=evaluate(sym,tf);if(!q)return;
+  if(Math.abs(D[sym].price-q.entry)/q.risk>.3)return;
+  q.why.push("найден при запуске");x.idx=x.idx||0;x.last=x.idx;emitSignal(q);n++}));
+ if(n)toast("При запуске найдено кандидатов в сигналы: "+n)}
+async function discover(){
+ try{status("ищу монеты…");
+  const r=await api("https://api.bybit.com/v5/market/tickers?category=linear"),min=(num("minvol")||0)*1e6;
+  const L=r.list.filter(t=>/^[A-Z0-9]+USDT$/.test(t.symbol)&&+t.turnover24h>=min).sort((a,b)=>b.turnover24h-a.turnover24h).slice(0,Math.min(600,num("ncoins")||500)).map(t=>t.symbol);
+  if(!L.includes("BTCUSDT"))L.unshift("BTCUSDT");
+  COINS=L;COINS.forEach(initCoin);
+  r.list.forEach(t=>{if(D[t.symbol])M[t.symbol]=mkM(t)});
+  try{const r2=await api("https://api.bybit.com/v5/market/instruments-info?category=linear&limit=1000");
+   r2.list.forEach(i=>{INS[i.symbol]={tick:i.priceFilter.tickSize,step:i.lotSizeFilter.qtyStep,min:+i.lotSizeFilter.minOrderQty,minNot:+(i.lotSizeFilter.minNotionalValue||0)}})}catch(e){}
+  status("монет: "+COINS.length)}catch(e){COINS.forEach(initCoin);status("список монет не получен, запасной: "+COINS.length,"bad")}
+ drawTabs();
+}
+
+/* ===== v21: НАСТРОЙКИ, ОБРАБОТЧИКИ, ЗАПУСК ===== */
+/* Telegram Mini App: если страница открыта внутри Telegram — раскрыть на весь экран, ссылки открывать через Telegram */
+const TG=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData!==undefined&&window.Telegram.WebApp.platform!=="unknown"?window.Telegram.WebApp:null;
+if(TG){try{TG.ready();TG.expand();TG.setHeaderColor&&TG.setHeaderColor("#070b14");TG.setBackgroundColor&&TG.setBackgroundColor("#070b14");document.documentElement.classList.add("in-tg")}catch(e){}
+ openBybit=function(sym){copyText(sym,sym+" скопирован");try{TG.openLink("https://www.bybit.com/trade/usdt/"+sym)}catch(e){window.open("https://www.bybit.com/trade/usdt/"+sym,"_blank")}}}
+function toggleTf(t){
+ if(watch.has(t)){if(watch.size===1)return;watch.delete(t)}else watch.add(t);
+ save();drawTabs();render();ensure().then(()=>render());
+}
+try{const o=JSON.parse(localStorage.getItem("cfg5")||"{}");
+ IDS.forEach(k=>{if(o[k]&&$(k))$(k).value=o[k]});
+ if(o.chk)for(const k in o.chk){const e=$(k);if(e)e.checked=!!o.chk[k]}
+ if(o.lgc)setSel("lgc",o.lgc);if(o.cmin)setSel("cmin",o.cmin);if(o.thm)setSel("thm",o.thm);
+ if(o.watch&&o.watch.length)watch=new Set(o.watch)}catch(e){}
+IDS.forEach(k=>{const e=$(k);if(e)e.addEventListener("change",()=>{save();render();labDraw()})});
+CHK.forEach(k=>{const e=$(k);if(e)e.addEventListener("change",()=>{save();render()})});
+$("lgc").addEventListener("change",()=>{save();render()});
+["cmin","thm"].forEach(k=>$(k).addEventListener("change",()=>{save();applyTheme();render()}));
+$("find").addEventListener("input",()=>{drawTabs();ui()});
+try{signals=JSON.parse(localStorage.getItem("sig4")||"[]").map(z=>({...z,t:new Date(z.t)}))}catch(e){}
+try{cands=JSON.parse(localStorage.getItem("cands1")||"[]")}catch(e){}
+try{const u=JSON.parse(localStorage.getItem("ui5")||"{}");if(u.cur)cur=u.cur;if(u.flt)flt=u.flt;if(u.fav)fav=new Set(u.fav);if(u.alerts)alerts=u.alerts;$("find").value=u.find||""}catch(e){}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+try{localStorage.setItem("t","1");localStorage.removeItem("t")}catch(e){setTimeout(()=>toast("Браузер не разрешает сохранение: настройки и журнал пропадут"),1500)}
+$("scanNow").onclick=scanNowRun;
+$("clr").onclick=()=>{signals=[];cands=[];saveSig();try{localStorage.setItem("cands1","[]")}catch(e){}render();toast("Журнал сигналов очищен")};
+$("csv").onclick=()=>{const h="Время;Монета;ТФ;Сторона;Стратегия;Класс;Вход;Стоп;ТП1;ТП2;Плечо;Объём;Статус;Выход;Итог USDT;R";
+ const rows=signals.map(s=>{const p=pnlNum(s);return[s.t.toLocaleString("ru-RU"),s.sym,TFS[s.tf],s.side,ENG.SNAME[s.strat]||s.strat||"",s.grade||"",s.entry,s.sl,s.tp1||"",s.tp,s.lev,s.qtyS,s.status,s.exit??"",p.n.toFixed(2),p.r.toFixed(2)].join(";")});
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+[h,...rows].join("\n")],{type:"text/csv"}));a.download="журнал_сигналов.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+$("labd").addEventListener("toggle",labDraw);
+$("stxd").addEventListener("toggle",drawStx);$("histd").addEventListener("toggle",drawHist);
+drawTabs();render();labLoad();labDraw();
+discover().then(async()=>{
+ if(cur!=="ALL"&&cur!=="FAV"&&!D[cur])cur="ALL";
+ const cc=await cacheLoad();
+ for(const key in cc){const[sym,tf]=key.split("|");if(!D[sym])continue;const a=cc[key],c=[];for(let i=0;i<a.length;i+=6)c.push({t:a[i],o:a[i+1],h:a[i+2],l:a[i+3],c:a[i+4],v:a[i+5]});slot(sym,tf).c=c}
+ drawTabs();render();
+ setInterval(()=>pollTickers().then(()=>{drawTabs();drawMap()}),30000);return ensure()
+}).then(async()=>{
+ reconcile();startScan();render();connect();drawFresh();
+ if($("labauto").checked&&(!LAB.res||!labValid()||Date.now()-LAB.ts>24*36e5))labRun()
+});
+
+</script>
+</body>
+</html>
